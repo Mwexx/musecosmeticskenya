@@ -1,7 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 // Storage configuration
 const storage = process.env.VERCEL
@@ -11,7 +11,7 @@ const storage = process.env.VERCEL
             cb(null, config.UPLOAD_PATH);
         },
         filename: (req, file, cb) => {
-            const uniqueName = uuidv4() + path.extname(file.originalname);
+            const uniqueName = randomUUID() + path.extname(file.originalname);
             cb(null, uniqueName);
         }
     });
