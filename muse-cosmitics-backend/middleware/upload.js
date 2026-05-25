@@ -1,24 +1,20 @@
 const multer = require('multer');
 const path = require('path');
 const config = require('../config/config');
-const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
-// Ensure uploads directory exists
-if (!fs.existsSync(config.UPLOAD_PATH)) {
-    fs.mkdirSync(config.UPLOAD_PATH, { recursive: true });
-}
-
 // Storage configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, config.UPLOAD_PATH);
-    },
-    filename: (req, file, cb) => {
-        const uniqueName = uuidv4() + path.extname(file.originalname);
-        cb(null, uniqueName);
-    }
-});
+const storage = process.env.VERCEL
+    ? multer.memoryStorage()
+    : multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, config.UPLOAD_PATH);
+        },
+        filename: (req, file, cb) => {
+            const uniqueName = uuidv4() + path.extname(file.originalname);
+            cb(null, uniqueName);
+        }
+    });
 
 // File filter
 const fileFilter = (req, file, cb) => {

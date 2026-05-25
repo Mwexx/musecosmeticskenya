@@ -138,12 +138,16 @@ exports.createProduct = async (req, res) => {
         
         // Handle image upload
         if (req.file) {
-            productData.image = `/uploads/${req.file.filename}`;
+            productData.image = process.env.VERCEL
+                ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+                : `/uploads/${req.file.filename}`;
         }
         
         // Handle multiple images
         if (req.files) {
-            productData.images = req.files.map(file => `/uploads/${file.filename}`);
+            productData.images = req.files.map(file => process.env.VERCEL
+                ? `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+                : `/uploads/${file.filename}`);
         }
         
         const product = await Product.create(productData);
@@ -173,7 +177,9 @@ exports.updateProduct = async (req, res) => {
         
         // Handle image upload
         if (req.file) {
-            productData.image = `/uploads/${req.file.filename}`;
+            productData.image = process.env.VERCEL
+                ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+                : `/uploads/${req.file.filename}`;
         }
         
         const product = await Product.findByIdAndUpdate(
