@@ -31,6 +31,10 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: 'default-product.jpg'
     },
+    imageBack: {
+        type: String,
+        default: ''
+    },
     images: [{
         type: String
     }],
@@ -52,6 +56,14 @@ const productSchema = new mongoose.Schema({
     isFeatured: {
         type: Boolean,
         default: false
+    },
+    ratingAverage: {
+        type: Number,
+        default: 0
+    },
+    numReviews: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true,

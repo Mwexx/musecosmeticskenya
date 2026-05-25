@@ -167,8 +167,9 @@ function updateAuthUI(isLoggedIn) {
     const authLink = document.getElementById('authLink');
     if (authLink) {
         if (isLoggedIn) {
-            authLink.textContent = 'Dashboard';
-            authLink.href = 'dashboard.html';
+            const isAdmin = currentUser?.role === 'admin';
+            authLink.textContent = isAdmin ? 'Admin Dashboard' : 'Dashboard';
+            authLink.href = isAdmin ? 'admin.html' : 'dashboard.html';
         } else {
             authLink.textContent = 'Login';
             authLink.href = 'login.html';

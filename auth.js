@@ -59,8 +59,9 @@ function updateAuthUI(isLoggedIn) {
     
     authLinks.forEach(link => {
         if (isLoggedIn) {
-            link.textContent = currentUser?.name?.split(' ')[0] || 'Dashboard';
-            link.href = 'dashboard.html';
+            const isAdmin = currentUser?.role === 'admin';
+            link.textContent = isAdmin ? 'Admin Dashboard' : (currentUser?.name?.split(' ')[0] || 'Dashboard');
+            link.href = isAdmin ? 'admin.html' : 'dashboard.html';
         } else {
             link.textContent = 'Login';
             link.href = 'login.html';
@@ -168,13 +169,13 @@ async function handleLogin(e) {
         
         // Redirect
         setTimeout(() => {
-            const redirectUrl = getQueryParam('redirect') || 'dashboard.html';
+            const redirectUrl = getQueryParam('redirect') || (result.data.user?.role === 'admin' ? 'admin.html' : 'dashboard.html');
             window.location.href = redirectUrl;
         }, 1000);
         
     } catch (error) {
         console.error('Login error:', error);
-        showNotification('Invalid credentials. Please try again.', 'error');
+        showNotification(error.message || 'Invalid credentials. Please try again.', 'error');
         
         // Reset button
         const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -229,14 +230,14 @@ async function handleSignup(e) {
         // Show success
         showNotification(result.message || 'Account created successfully!', 'success');
         
-        // Redirect to dashboard for immediate access
+        // Redirect to the correct dashboard for immediate access
         setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            window.location.href = result.data.user?.role === 'admin' ? 'admin.html' : 'dashboard.html';
         }, 1500);
         
     } catch (error) {
         console.error('Signup error:', error);
-        showNotification('Failed to create account. Please try again.', 'error');
+        showNotification(error.message || 'Failed to create account. Please try again.', 'error');
         
         // Reset button
         const submitBtn = e.target.querySelector('button[type="submit"]');

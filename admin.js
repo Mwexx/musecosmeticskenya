@@ -1,20 +1,72 @@
-// Check Admin Authentication
+const API_BASE_URL = getApiBaseUrl();
+
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    // Simple check (In production, check role from backend)
+    const token = getAuthToken();
+    const user = getCurrentUser();
+
     if (!token) {
         window.location.href = 'login.html';
         return;
     }
-    
-    // Simulate Admin Check
-    // For demo, we allow access. In production, check user.role === 'admin'
-    
+
+    if (!user || user.role !== 'admin') {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
     initializeSidebar();
+    initializeProductForm();
     loadAdminData();
 });
+
+function getApiBaseUrl() {
+    if (window.API_BASE_URL) {
+        return window.API_BASE_URL;
+    }
+
+    if (window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) {
+        return 'http://localhost:5000/api/v1';
+    }
+
+    return '/api/v1';
+}
+
+function getAuthToken() {
+    return localStorage.getItem('token')
+        || localStorage.getItem('authToken')
+        || sessionStorage.getItem('token')
+        || sessionStorage.getItem('authToken');
+}
+
+function getCurrentUser() {
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+}
+
+async function fetchApi(path, options = {}) {
+    const token = getAuthToken();
+    const headers = {
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.success === false) {
+        throw new Error(data.message || 'Request failed');
+    }
+
+    return data;
+}
 
 function initializeSidebar() {
     const links = document.querySelectorAll('.sidebar-link');
@@ -24,37 +76,39 @@ function initializeSidebar() {
     const overlay = document.getElementById('sidebarOverlay');
     const pageTitle = document.getElementById('pageTitle');
     const addProductBtn = document.getElementById('addProductBtn');
-    
+
     links.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            links.forEach(l => l.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
-            
+            links.forEach(item => item.classList.remove('active'));
+            sections.forEach(section => section.classList.remove('active'));
+
             link.classList.add('active');
             const sectionId = link.getAttribute('data-section');
-            document.getElementById(sectionId).classList.add('active');
-            
-            pageTitle.textContent = link.textContent.trim();
-            
-            // Show Add Product button only on Products section
-            if (sectionId === 'admin-products') {
-                addProductBtn.style.display = 'block';
-            } else {
-                addProductBtn.style.display = 'none';
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.add('active');
             }
-            
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
+
+            if (pageTitle) {
+                pageTitle.textContent = link.textContent.trim();
+            }
+
+            if (addProductBtn) {
+                addProductBtn.style.display = sectionId === 'admin-products' ? 'block' : 'none';
+            }
+
+            if (sidebar) sidebar.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
         });
     });
-    
-    if (toggle) {
+
+    if (toggle && sidebar && overlay) {
         toggle.addEventListener('click', () => {
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
         });
-        
+
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
@@ -62,140 +116,220 @@ function initializeSidebar() {
     }
 }
 
-// Load Admin Data
-function loadAdminData() {
-    // Mock Stats
-    document.getElementById('adminTotalSales').textContent = 'Ksh 45,000';
-    document.getElementById('adminTotalOrders').textContent = '156';
-    document.getElementById('adminTotalProducts').textContent = '10';
-    document.getElementById('adminNewCustomers').textContent = '23';
-    
-    // Mock Products
-    const products = [
-        { id: 1, name: 'Cocoa Butter Lotion', category: 'Lotions', price: 100, stock: 50, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100' },
-        { id: 2, name: 'Carrot Light Lotion', category: 'Lotions', price: 100, stock: 30, image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=100' },
-        { id: 3, name: 'Strawberry Shampoo', category: 'Shampoo', price: 100, stock: 20, image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=100' }
-    ];
-    
-    const productsTable = document.getElementById('adminProductsTable');
-    if (productsTable) {
-        productsTable.innerHTML = products.map(p => `
-            <tr>
-                <td><img src="${p.image}" class="product-img-thumb"></td>
-                <td>${p.name}</td>
-                <td>${p.category}</td>
-                <td>Ksh ${p.price}</td>
-                <td>${p.stock}</td>
-                <td>
-                    <button class="action-btn btn-edit"><i class="fas fa-edit"></i></button>
-                    <button class="action-btn btn-delete"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `).join('');
+function initializeProductForm() {
+    const form = document.getElementById('addProductForm');
+    if (!form) return;
+
+    form.addEventListener('submit', handleAddProduct);
+}
+
+async function handleAddProduct(e) {
+    e.preventDefault();
+
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const name = document.getElementById('productName')?.value.trim();
+    const category = document.getElementById('productCategory')?.value;
+    const description = document.getElementById('productDescription')?.value.trim();
+    const price = document.getElementById('productPrice')?.value;
+    const stock = document.getElementById('productStock')?.value;
+    const imageFile = document.getElementById('productImage')?.files?.[0];
+    const isFeatured = document.getElementById('productFeatured')?.checked || false;
+
+    if (!name || !category || !description || !price || !stock) {
+        showNotification('Please complete all required product fields.', 'error');
+        return;
     }
-    
-    // Mock Orders
-    const orders = [
-        { id: '#ORD-101', customer: 'Jane Doe', items: 3, total: 500, status: 'pending' },
-        { id: '#ORD-102', customer: 'John Smith', items: 1, total: 200, status: 'completed' },
-        { id: '#ORD-103', customer: 'Mary Wanjiku', items: 5, total: 1000, status: 'processing' }
-    ];
-    
-    const ordersTable = document.getElementById('adminAllOrders');
-    const recentOrdersTable = document.getElementById('adminRecentOrders');
-    
-    const renderOrders = (data, includeItems = false) => {
-        return data.map(o => `
-            <tr>
-                <td>${o.id}</td>
-                <td>${o.customer}</td>
-                ${includeItems ? `<td>${o.items}</td>` : ''}
-                ${!includeItems ? `<td>Ksh ${o.total}</td><td>${o.status}</td>` : ''}
-                ${includeItems ? `<td>Ksh ${o.total}</td><td><span class="status-badge status-${o.status}">${o.status}</span></td>` : ''}
-                <td>
-                    <select onchange="updateOrderStatus(this, '${o.id}')" style="padding: 5px;">
-                        <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
-                        <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
-                    </select>
-                </td>
-            </tr>
-        `).join('');
-    };
-    
-    if (ordersTable) ordersTable.innerHTML = renderOrders(orders, true);
-    if (recentOrdersTable) {
-        recentOrdersTable.innerHTML = orders.slice(0, 3).map(o => `
-            <tr>
-                <td>${o.id}</td>
-                <td>${o.customer}</td>
-                <td>Ksh ${o.total}</td>
-                <td><span class="status-badge status-${o.status}">${o.status}</span></td>
-                <td>2026-03-10</td>
-            </tr>
-        `).join('');
-    }
-    
-    // Mock Customers
-    const customers = [
-        { name: 'Jane Doe', email: 'jane@example.com', phone: '0712345678', orders: 5, joined: '2026-01-15' },
-        { name: 'John Smith', email: 'john@example.com', phone: '0723456789', orders: 2, joined: '2026-02-20' }
-    ];
-    
-    const customersTable = document.getElementById('adminCustomersTable');
-    if (customersTable) {
-        customersTable.innerHTML = customers.map(c => `
-            <tr>
-                <td>${c.name}</td>
-                <td>${c.email}</td>
-                <td>${c.phone}</td>
-                <td>${c.orders}</td>
-                <td>${c.joined}</td>
-            </tr>
-        `).join('');
-    }
-    
-    // Mock Reviews
-    const reviews = [
-        { product: 'Cocoa Butter Lotion', customer: 'Sarah M.', rating: 5, comment: 'Excellent product!' },
-        { product: 'Carrot Light', customer: 'Peter K.', rating: 4, comment: 'Good value for money.' }
-    ];
-    
-    const reviewsTable = document.getElementById('adminReviewsTable');
-    if (reviewsTable) {
-        reviewsTable.innerHTML = reviews.map(r => `
-            <tr>
-                <td>${r.product}</td>
-                <td>${r.customer}</td>
-                <td>${'★'.repeat(r.rating)}</td>
-                <td>${r.comment}</td>
-                <td><button class="action-btn btn-delete">Delete</button></td>
-            </tr>
-        `).join('');
+
+    try {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('category', category);
+        formData.append('description', description);
+        formData.append('price', price);
+        formData.append('stock', stock);
+        formData.append('isFeatured', String(isFeatured));
+
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        await fetchApi('/products', {
+            method: 'POST',
+            body: formData
+        });
+
+        showNotification('Product saved to the database.', 'success');
+        e.target.reset();
+        closeProductModal();
+        await loadAdminData();
+    } catch (error) {
+        showNotification(error.message || 'Failed to save product.', 'error');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-plus"></i> Save Product';
     }
 }
 
-// Modal Functions
+async function loadAdminData() {
+    const productsTable = document.getElementById('adminProductsTable');
+    const ordersTable = document.getElementById('adminAllOrders');
+    const recentOrdersTable = document.getElementById('adminRecentOrders');
+    const customersTable = document.getElementById('adminCustomersTable');
+    const reviewsTable = document.getElementById('adminReviewsTable');
+
+    try {
+        const [productStats, orderStats, products, orders, users] = await Promise.all([
+            fetchApi('/products/stats'),
+            fetchApi('/orders/stats'),
+            fetchApi('/products?limit=100'),
+            fetchApi('/orders?limit=100'),
+            fetchApi('/users?limit=100')
+        ]);
+
+        document.getElementById('adminTotalSales').textContent = `Ksh ${Number(orderStats.data?.totalRevenue || 0).toLocaleString()}`;
+        document.getElementById('adminTotalOrders').textContent = String(orderStats.data?.totalOrders || 0);
+        document.getElementById('adminTotalProducts').textContent = String(productStats.data?.totalProducts || 0);
+
+        const customerUsers = Array.isArray(users.data) ? users.data.filter(item => item.role !== 'admin') : [];
+        document.getElementById('adminNewCustomers').textContent = String(customerUsers.length);
+
+        renderProducts(productsTable, Array.isArray(products.data) ? products.data : []);
+        renderOrders(ordersTable, recentOrdersTable, Array.isArray(orders.data) ? orders.data : []);
+        renderCustomers(customersTable, customerUsers, Array.isArray(orders.data) ? orders.data : []);
+        renderReviews(reviewsTable);
+    } catch (error) {
+        console.error('Admin dashboard load error:', error);
+        showNotification(error.message || 'Failed to load admin data.', 'error');
+        renderProducts(productsTable, []);
+        renderOrders(ordersTable, recentOrdersTable, []);
+        renderCustomers(customersTable, [], []);
+        renderReviews(reviewsTable);
+    }
+}
+
+function renderProducts(container, products) {
+    if (!container) return;
+
+    if (!products.length) {
+        container.innerHTML = '<tr><td colspan="6">No products found.</td></tr>';
+        return;
+    }
+
+    container.innerHTML = products.map(product => `
+        <tr>
+            <td><img src="${product.image || 'default-product.jpg'}" class="product-img-thumb" alt="${product.name || 'Product'}"></td>
+            <td>${product.name || ''}</td>
+            <td>${product.category || ''}</td>
+            <td>Ksh ${Number(product.price || 0).toLocaleString()}</td>
+            <td>${product.stock ?? 0}</td>
+            <td>
+                <button class="action-btn btn-edit"><i class="fas fa-edit"></i></button>
+                <button class="action-btn btn-delete"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderOrders(allOrdersContainer, recentOrdersContainer, orders) {
+    if (allOrdersContainer) {
+        if (!orders.length) {
+            allOrdersContainer.innerHTML = '<tr><td colspan="6">No orders found.</td></tr>';
+        } else {
+            allOrdersContainer.innerHTML = orders.map(order => `
+                <tr>
+                    <td>${order.orderNumber || order.id || ''}</td>
+                    <td>${order.user?.name || order.customer || 'Guest'}</td>
+                    <td>${order.items?.length || 0}</td>
+                    <td>Ksh ${Number(order.total || 0).toLocaleString()}</td>
+                    <td><span class="status-badge status-${order.status || 'pending'}">${order.status || 'pending'}</span></td>
+                    <td>
+                        <select onchange="updateOrderStatus(this, '${order._id || order.orderNumber || ''}')" style="padding: 5px;">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    if (recentOrdersContainer) {
+        if (!orders.length) {
+            recentOrdersContainer.innerHTML = '<tr><td colspan="5">No recent orders.</td></tr>';
+        } else {
+            recentOrdersContainer.innerHTML = orders.slice(0, 3).map(order => `
+                <tr>
+                    <td>${order.orderNumber || order.id || ''}</td>
+                    <td>${order.user?.name || order.customer || 'Guest'}</td>
+                    <td>Ksh ${Number(order.total || 0).toLocaleString()}</td>
+                    <td><span class="status-badge status-${order.status || 'pending'}">${order.status || 'pending'}</span></td>
+                    <td>${new Date(order.createdAt || Date.now()).toISOString().slice(0, 10)}</td>
+                </tr>
+            `).join('');
+        }
+    }
+}
+
+function renderCustomers(container, users, orders) {
+    if (!container) return;
+
+    if (!users.length) {
+        container.innerHTML = '<tr><td colspan="5">No customers found.</td></tr>';
+        return;
+    }
+
+    const orderCounts = orders.reduce((counts, order) => {
+        const userId = order.user?._id || order.user;
+        if (userId) {
+            counts[userId] = (counts[userId] || 0) + 1;
+        }
+        return counts;
+    }, {});
+
+    container.innerHTML = users.map(user => `
+        <tr>
+            <td>${user.name || ''}</td>
+            <td>${user.email || ''}</td>
+            <td>${user.phone || ''}</td>
+            <td>${orderCounts[user._id] || 0}</td>
+            <td>${new Date(user.createdAt || Date.now()).toISOString().slice(0, 10)}</td>
+        </tr>
+    `).join('');
+}
+
+function renderReviews(container) {
+    if (!container) return;
+
+    container.innerHTML = `
+        <tr>
+            <td colspan="5">Review moderation is handled from individual product pages.</td>
+        </tr>
+    `;
+}
+
 function openProductModal() {
-    document.getElementById('productModal').style.display = 'block';
+    const modal = document.getElementById('productModal');
+    if (modal) modal.style.display = 'block';
 }
 
 function closeProductModal() {
-    document.getElementById('productModal').style.display = 'none';
+    const modal = document.getElementById('productModal');
+    if (modal) modal.style.display = 'none';
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('productModal');
-    if (event.target == modal) {
-        modal.style.display = "none";
+    if (event.target === modal) {
+        modal.style.display = 'none';
     }
-}
+};
 
-// Update Order Status (Mock)
 function updateOrderStatus(select, orderId) {
     showNotification(`Order ${orderId} status updated to ${select.value}`, 'success');
-    // In production: API call to update order status
 }
 
 function logout() {
@@ -205,5 +339,5 @@ function logout() {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }

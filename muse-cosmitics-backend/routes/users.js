@@ -77,6 +77,20 @@ router.get('/:id', verifyToken, isAdmin, async (req, res) => {
 router.put('/:id/role', verifyToken, isAdmin, async (req, res) => {
     try {
         const { role } = req.body;
+
+        if (role === 'admin') {
+            const existingAdmin = await User.findOne({
+                role: 'admin',
+                _id: { $ne: req.params.id }
+            });
+
+            if (existingAdmin) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Only one admin account is allowed.'
+                });
+            }
+        }
         
         const user = await User.findByIdAndUpdate(
             req.params.id,
@@ -110,6 +124,26 @@ router.put('/:id/role', verifyToken, isAdmin, async (req, res) => {
 // @access  Private/Admin
 router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found.'
+            });
+        }
+
+        if (user.role === 'admin') {
+            const adminCount = await User.countDocuments({ role: 'admin' });
+
+            if (adminCount <= 1) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'The only admin account cannot be deleted.'
+                });
+            }
+        }
+
         await User.findByIdAndDelete(req.params.id);
         
         res.json({

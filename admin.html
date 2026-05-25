@@ -250,19 +250,37 @@
             <form id="addProductForm" style="margin-top: 20px;">
                 <div class="form-group">
                     <label>Product Name</label>
-                    <input type="text" required>
+                    <input type="text" id="productName" required>
                 </div>
                 <div class="form-group">
                     <label>Category</label>
-                    <select required>
+                    <select id="productCategory" required>
                         <option value="lotions">Lotions</option>
                         <option value="jelly">Jelly</option>
                         <option value="shampoo">Shampoo</option>
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="productDescription" rows="4" required style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group">
                     <label>Price (Ksh)</label>
-                    <input type="number" required>
+                    <input type="number" id="productPrice" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" id="productStock" min="0" value="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <input type="file" id="productImage" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500;">
+                        <input type="checkbox" id="productFeatured">
+                        Feature this product on the home page
+                    </label>
                 </div>
                 <button type="submit" class="btn btn-primary">Save Product</button>
             </form>

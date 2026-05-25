@@ -59,6 +59,12 @@ const userSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
+// Only allow a single admin account in the database
+userSchema.index({ role: 1 }, {
+    unique: true,
+    partialFilterExpression: { role: 'admin' }
+});
+
 // Hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
