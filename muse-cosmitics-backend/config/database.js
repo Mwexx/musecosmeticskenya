@@ -1,0 +1,48 @@
+const mongoose = require('mongoose');
+const config = require('./config');
+
+// Connect to MongoDB
+async function connectDB() {
+    try {
+        const conn = await mongoose.connect(config.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        
+        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+        return true;
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error.message);
+        process.exit(1);
+    }
+}
+
+// Disconnect from MongoDB
+async function disconnectDB() {
+    try {
+        await mongoose.connection.close();
+        console.log('MongoDB disconnected');
+    } catch (error) {
+        console.error('MongoDB disconnect error:', error);
+    }
+}
+
+// Clear database (for development)
+async function clearDatabase() {
+    try {
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
+        console.log('Database cleared');
+    } catch (error) {
+        console.error('Clear database error:', error);
+    }
+}
+
+module.exports = {
+    connectDB,
+    disconnectDB,
+    clearDatabase,
+    mongoose
+};

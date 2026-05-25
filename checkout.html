@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Muse Cosmetics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="animations.css">
+    <style>
+        .checkout-section {
+            padding: 120px 0 80px;
+            min-height: 70vh;
+        }
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 40px;
+        }
+        .checkout-form {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            box-shadow: var(--shadow);
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        .section-title-checkout {
+            font-family: var(--font-secondary);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title-checkout i {
+            color: var(--primary-color);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: var(--font-primary);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .payment-methods {
+            display: grid;
+            gap: 15px;
+        }
+        .payment-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .payment-option:hover {
+            border-color: var(--primary-color);
+        }
+        .payment-option.active {
+            border-color: var(--primary-color);
+            background: var(--light-color);
+        }
+        .payment-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+        }
+        .payment-option label {
+            flex: 1;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .payment-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        .order-summary-checkout {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .summary-item.total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            border-bottom: none;
+            border-top: 2px solid var(--primary-color);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        .btn-place-order {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.1rem;
+            margin-top: 25px;
+        }
+        .secure-checkout {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .secure-checkout i {
+            color: #28a745;
+            margin-right: 5px;
+        }
+        @media screen and (max-width: 992px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+            .order-summary-checkout {
+                position: static;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><i class="fas fa-spa"></i></span>
+                    <span class="logo-text">Muse Cosmetics</span>
+                </a>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="products.html" class="nav-link">Products</a></li>
+                <li><a href="cart.html" class="nav-link cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Checkout Section -->
+    <section class="checkout-section">
+        <div class="container">
+            <h1 class="section-title text-center" style="margin-bottom: 50px;">Checkout</h1>
+            
+            <div class="checkout-container">
+                <div class="checkout-form">
+                    <form id="checkoutForm">
+                        <!-- Contact Information -->
+                        <div class="form-section">
+                            <h3 class="section-title-checkout">
+                                <i class="fas fa-user"></i> Contact Information
+                            </h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>First Name *</label>
+                                    <input type="text" id="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Name *</label>
+                                    <input type="text" id="lastName" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Email Address *</label>
+                                    <input type="email" id="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number *</label>
+                                    <input type="tel" id="phone" placeholder="07XX XXX XXX" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Address -->
+                        <div class="form-section">
+                            <h3 class="section-title-checkout">
+                                <i class="fas fa-map-marker-alt"></i> Delivery Address
+                            </h3>
+                            <div class="form-group">
+                                <label>Street Address *</label>
+                                <input type="text" id="address" placeholder="House/Building No., Street" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Town/City *</label>
+                                    <input type="text" id="town" value="Nakuru" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>County *</label>
+                                    <select id="county" required>
+                                        <option value="">Select County</option>
+                                        <option value="Nakuru" selected>Nakuru</option>
+                                        <option value="Nairobi">Nairobi</option>
+                                        <option value="Kisumu">Kisumu</option>
+                                        <option value="Mombasa">Mombasa</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Delivery Instructions (Optional)</label>
+                                <textarea id="instructions" placeholder="Any specific delivery instructions..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="form-section">
+                            <h3 class="section-title-checkout">
+                                <i class="fas fa-credit-card"></i> Payment Method
+                            </h3>
+                            <div class="payment-methods">
+                                <div class="payment-option active" onclick="selectPayment(this, 'mpesa')">
+                                    <input type="radio" name="payment" value="mpesa" checked>
+                                    <i class="fas fa-mobile-alt payment-icon"></i>
+                                    <label>M-Pesa (Lipa Na M-Pesa)</label>
+                                </div>
+                                <div class="payment-option" onclick="selectPayment(this, 'cash')">
+                                    <input type="radio" name="payment" value="cash">
+                                    <i class="fas fa-money-bill-wave payment-icon"></i>
+                                    <label>Cash on Delivery</label>
+                                </div>
+                                <div class="payment-option" onclick="selectPayment(this, 'bank')">
+                                    <input type="radio" name="payment" value="bank">
+                                    <i class="fas fa-university payment-icon"></i>
+                                    <label>Bank Transfer</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-place-order">
+                            <i class="fas fa-check-circle"></i> Place Order
+                        </button>
+                        
+                        <div class="secure-checkout">
+                            <i class="fas fa-lock"></i> Secure Checkout | Your information is protected
+                        </div>
+                    </form>
+                </div>
+
+                <div class="order-summary-checkout">
+                    <h3 class="section-title-checkout">
+                        <i class="fas fa-shopping-bag"></i> Order Summary
+                    </h3>
+                    <div id="orderSummaryItems">
+                        <!-- Items loaded via JS -->
+                    </div>
+                    <div class="summary-item total">
+                        <span>Total</span>
+                        <span id="orderTotal">Ksh 0/=</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom text-center">
+                <p>&copy; 2026 Muse Cosmetics. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script src="cart.js"></script>
+    <script>
+        // Load order summary
+        function loadOrderSummary() {
+            const container = document.getElementById('orderSummaryItems');
+            const totalElement = document.getElementById('orderTotal');
+            
+            if (cart.length === 0) {
+                window.location.href = 'cart.html';
+                return;
+            }
+            
+            const subtotal = getCartTotal();
+            const delivery = subtotal > 1000 ? 0 : 150;
+            const total = subtotal + delivery;
+            
+            container.innerHTML = cart.map(item => `
+                <div class="summary-item">
+                    <div>
+                        <div style="font-weight: 600;">${item.name}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">
+                            ${item.size} x ${item.quantity}
+                        </div>
+                    </div>
+                    <div>Ksh ${item.price * item.quantity}/=</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML += `
+                <div class="summary-item">
+                    <span>Subtotal</span>
+                    <span>Ksh ${subtotal}/=</span>
+                </div>
+                <div class="summary-item">
+                    <span>Delivery</span>
+                    <span>${delivery === 0 ? 'FREE' : 'Ksh ' + delivery + '/='}</span>
+                </div>
+            `;
+            
+            totalElement.textContent = `Ksh ${total}/=`;
+        }
+
+        function selectPayment(element, method) {
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+            element.querySelector('input[type="radio"]').checked = true;
+        }
+
+        // Form submission
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                town: document.getElementById('town').value,
+                county: document.getElementById('county').value,
+                instructions: document.getElementById('instructions').value,
+                paymentMethod: document.querySelector('input[name="payment"]:checked').value,
+                items: cart,
+                total: getCartTotal() + (getCartTotal() > 1000 ? 0 : 150)
+            };
+            
+            try {
+                // In production: await fetch('/api/orders', { method: 'POST', body: JSON.stringify(orderData) })
+                
+                // Generate order number
+                const orderNumber = 'ORD-' + Date.now();
+                
+                // Save order to localStorage (for demo)
+                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                orders.push({ ...orderData, orderNumber, date: new Date().toISOString(), status: 'pending' });
+                localStorage.setItem('orders', JSON.stringify(orders));
+                
+                // Clear cart
+                clearCart();
+                
+                // Show success
+                showNotification('Order placed successfully!', 'success');
+                
+                // Redirect to success page
+                setTimeout(() => {
+                    window.location.href = `order-success.html?order=${orderNumber}`;
+                }, 1500);
+                
+            } catch (error) {
+                showNotification('Failed to place order. Please try again.', 'error');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOrderSummary();
+            
+            // Load user data if logged in
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                const names = user.name.split(' ');
+                document.getElementById('firstName').value = names[0] || '';
+                document.getElementById('lastName').value = names[1] || '';
+            }
+            if (user.email) document.getElementById('email').value = user.email;
+            if (user.phone) document.getElementById('phone').value = user.phone;
+        });
+    </script>
+</body>
+</html>

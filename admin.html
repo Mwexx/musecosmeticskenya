@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Muse Cosmetics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="animations.css">
+    <style>
+        .admin-badge {
+            background: var(--dark-color);
+            color: var(--white);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        .product-img-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><i class="fas fa-spa"></i></span>
+                    <span class="logo-text">Muse Cosmetics <span class="admin-badge">ADMIN</span></span>
+                </a>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">View Site</a></li>
+                <li><a href="admin.html" class="nav-link active">Admin Panel</a></li>
+                <li><a href="#" onclick="logout()" class="nav-link">Logout</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <div class="sidebar-header">
+                <h3>Admin Panel</h3>
+                <p style="color: var(--text-light); font-size: 0.9rem;">Administrator</p>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#" class="sidebar-link active" data-section="admin-overview">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="sidebar-link" data-section="admin-products">
+                    <i class="fas fa-box-open"></i> Products
+                </a>
+                <a href="#" class="sidebar-link" data-section="admin-orders">
+                    <i class="fas fa-shopping-cart"></i> Orders
+                </a>
+                <a href="#" class="sidebar-link" data-section="admin-customers">
+                    <i class="fas fa-users"></i> Customers
+                </a>
+                <a href="#" class="sidebar-link" data-section="admin-reviews">
+                    <i class="fas fa-star"></i> Reviews
+                </a>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            <div class="dashboard-header">
+                <div>
+                    <i class="fas fa-bars sidebar-toggle" id="sidebarToggle"></i>
+                    <h1 id="pageTitle">Admin Overview</h1>
+                </div>
+                <button class="btn btn-primary" id="addProductBtn" style="display: none;">
+                    <i class="fas fa-plus"></i> Add Product
+                </button>
+            </div>
+
+            <!-- Admin Overview -->
+            <section id="admin-overview" class="dashboard-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Sales</h4>
+                            <p id="adminTotalSales">Ksh 0</p>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Orders</h4>
+                            <p id="adminTotalOrders">0</p>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Products</h4>
+                            <p id="adminTotalProducts">0</p>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-box"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>New Customers</h4>
+                            <p id="adminNewCustomers">0</p>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Recent Orders</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminRecentOrders">
+                            <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Products Management -->
+            <section id="admin-products" class="dashboard-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Product Inventory</h3>
+                        <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductsTable">
+                            <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Orders Management -->
+            <section id="admin-orders" class="dashboard-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>All Orders</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminAllOrders">
+                            <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Customers Management -->
+            <section id="admin-customers" class="dashboard-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Registered Customers</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Orders</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminCustomersTable">
+                            <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Reviews Management -->
+            <section id="admin-reviews" class="dashboard-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Customer Reviews</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Customer</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminReviewsTable">
+                            <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="productModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; padding: 30px;">
+            <span class="close-modal" onclick="closeProductModal()" style="float: right; cursor: pointer; font-size: 1.5rem;">&times;</span>
+            <h3>Add New Product</h3>
+            <form id="addProductForm" style="margin-top: 20px;">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select required>
+                        <option value="lotions">Lotions</option>
+                        <option value="jelly">Jelly</option>
+                        <option value="shampoo">Shampoo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Price (Ksh)</label>
+                    <input type="number" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

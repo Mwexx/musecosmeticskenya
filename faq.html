@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ | Muse Cosmetics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="animations.css">
+    <style>
+        .faq-section {
+            padding: 120px 0 80px;
+        }
+        .faq-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .faq-search {
+            margin-bottom: 50px;
+            position: relative;
+        }
+        .faq-search input {
+            width: 100%;
+            padding: 20px 60px 20px 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+        .faq-search input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .faq-search i {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1.3rem;
+        }
+        .faq-categories {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .faq-category-btn {
+            padding: 10px 25px;
+            border: 2px solid var(--primary-color);
+            background: transparent;
+            color: var(--primary-color);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .faq-category-btn:hover, .faq-category-btn.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        .faq-list {
+            margin-top: 40px;
+        }
+        .faq-item {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 25px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            background: var(--white);
+        }
+        .faq-question:hover {
+            background: var(--light-color);
+        }
+        .faq-question h3 {
+            font-family: var(--font-secondary);
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin: 0;
+            padding-right: 20px;
+        }
+        .faq-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 30px;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding: 0 30px 25px;
+        }
+        .faq-answer p {
+            color: var(--text-light);
+            line-height: 1.8;
+            margin: 0;
+        }
+        .faq-answer ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .faq-answer li {
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+        .still-questions {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            padding: 60px 40px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            margin-top: 80px;
+        }
+        .still-questions h3 {
+            font-family: var(--font-secondary);
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .still-questions p {
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .btn-white {
+            background: var(--white);
+            color: var(--primary-color);
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: 600;
+            display: inline-block;
+            transition: var(--transition);
+        }
+        .btn-white:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        @media screen and (max-width: 768px) {
+            .faq-question h3 {
+                font-size: 1rem;
+            }
+            .still-questions h3 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><i class="fas fa-spa"></i></span>
+                    <span class="logo-text">Muse Cosmetics</span>
+                </a>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="products.html" class="nav-link">Products</a></li>
+                <li><a href="faq.html" class="nav-link active">FAQ</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="cart.html" class="nav-link cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </a></li>
+                <li><a href="login.html" class="nav-link" id="authLink">Login</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <h1 class="section-title text-center" style="margin-bottom: 20px;">Frequently Asked Questions</h1>
+            <p class="text-center" style="color: var(--text-light); margin-bottom: 50px; font-size: 1.1rem;">
+                Find answers to common questions about our products and services
+            </p>
+            
+            <div class="faq-container">
+                <!-- Search -->
+                <div class="faq-search">
+                    <input type="text" id="faqSearch" placeholder="Search for answers...">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <!-- Categories -->
+                <div class="faq-categories">
+                    <button class="faq-category-btn active" onclick="filterFAQ('all')">All</button>
+                    <button class="faq-category-btn" onclick="filterFAQ('products')">Products</button>
+                    <button class="faq-category-btn" onclick="filterFAQ('orders')">Orders & Delivery</button>
+                    <button class="faq-category-btn" onclick="filterFAQ('payment')">Payment</button>
+                    <button class="faq-category-btn" onclick="filterFAQ('general')">General</button>
+                </div>
+                
+                <!-- FAQ List -->
+                <div class="faq-list" id="faqList">
+                    <!-- Products -->
+                    <div class="faq-item" data-category="products">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>What ingredients are used in your products?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We use only high-quality, natural ingredients in all our products. Our formulations include:</p>
+                            <ul>
+                                <li>Pure Cocoa Butter</li>
+                                <li>Natural Aloe Vera Extract</li>
+                                <li>Carrot Oil and Extract</li>
+                                <li>Vitamin E</li>
+                                <li>Natural Essential Oils</li>
+                                <li>Pure Petroleum Jelly</li>
+                            </ul>
+                            <p>All our products are free from harmful chemicals and are safe for daily use.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="products">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>Are your products suitable for sensitive skin?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! We have several products specifically designed for sensitive skin, including our Aloe Vera Lotion and Pure Milking Jelly. However, we always recommend doing a patch test before using any new product.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="products">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>What's the difference between lotion and jelly?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Our lotions are lighter and absorb quickly into the skin, making them perfect for daily use. Our jelly products are thicker and provide a protective barrier, making them ideal for very dry areas or overnight treatment.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Orders & Delivery -->
+                    <div class="faq-item" data-category="orders">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>Do you offer free delivery?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! We offer free delivery within Nakuru County for orders above Ksh 1,000. For orders below this amount, a delivery fee of Ksh 150 applies.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="orders">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>How long does delivery take?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Delivery times vary by location:</p>
+                            <ul>
+                                <li><strong>Nakuru Town:</strong> Same day or next day delivery</li>
+                                <li><strong>Nakuru County:</strong> 1-2 business days</li>
+                                <li><strong>Other Counties:</strong> 3-5 business days</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="orders">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>Can I track my order?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! Once your order is dispatched, you'll receive an SMS with a tracking number. You can also check your order status by logging into your account dashboard.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment -->
+                    <div class="faq-item" data-category="payment">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>What payment methods do you accept?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We accept multiple payment methods for your convenience:</p>
+                            <ul>
+                                <li>M-Pesa (Lipa Na M-Pesa)</li>
+                                <li>Cash on Delivery (within Nakuru)</li>
+                                <li>Bank Transfer</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="payment">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>Is it safe to pay with M-Pesa?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Absolutely! M-Pesa is one of the safest payment methods in Kenya. You'll receive a confirmation SMS for every transaction, and we never store your M-Pesa details on our servers.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- General -->
+                    <div class="faq-item" data-category="general">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>Where are you located?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We are located in Kiamunyi, Nakuru County, approximately 10 km from Nakuru Town. You can visit our store during business hours or shop online for delivery.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="general">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>What are your business hours?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Our business hours are:</p>
+                            <ul>
+                                <li>Monday - Friday: 8:00 AM - 6:00 PM</li>
+                                <li>Saturday: 9:00 AM - 5:00 PM</li>
+                                <li>Sunday: Closed</li>
+                            </ul>
+                            <p>Online orders can be placed 24/7!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" data-category="general">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>Do you offer bulk orders or wholesale?</h3>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! We offer special pricing for bulk orders and wholesale customers. Please contact us at sales@musecosmetics.co.ke or call +254 7XX XXX XXX for wholesale inquiries.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Still Have Questions -->
+                <div class="still-questions">
+                    <h3>Still Have Questions?</h3>
+                    <p>Can't find the answer you're looking for? Our team is here to help.</p>
+                    <a href="contact.html" class="btn-white">
+                        <i class="fas fa-envelope"></i> Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom text-center">
+                <p>&copy; 2026 Muse Cosmetics. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        function toggleFAQ(element) {
+            const item = element.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            // Close all FAQs
+            document.querySelectorAll('.faq-item').forEach(faq => {
+                faq.classList.remove('active');
+            });
+            
+            // Open clicked if it wasn't active
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        }
+        
+        function filterFAQ(category) {
+            // Update buttons
+            document.querySelectorAll('.faq-category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter items
+            const items = document.querySelectorAll('.faq-item');
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        // Search functionality
+        document.getElementById('faqSearch').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.faq-item');
+            
+            items.forEach(item => {
+                const question = item.querySelector('h3').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
