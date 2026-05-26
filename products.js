@@ -166,6 +166,52 @@ const productsData = [
         ],
         rating: 4.5,
         reviews: 43
+    },
+    {
+        id: 11,
+        name: 'Shea Glow Lotion',
+        category: 'lotions',
+        description: 'Hydrating lotion with shea butter and botanical oils for a soft glow',
+        ingredients: 'Shea Butter, Argan Oil, Aloe Vera, Vitamin E',
+        benefits: ['Deep moisture', 'Softens rough skin', 'Non-greasy finish', 'Healthy glow'],
+        image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600',
+        imageBack: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600',
+        sizes: [
+            { size: '100ml', price: 120 },
+            { size: '250ml', price: 220 }
+        ],
+        rating: 4.8,
+        reviews: 61
+    },
+    {
+        id: 12,
+        name: 'Honey Silk Jelly',
+        category: 'jelly',
+        description: 'Silky jelly blend with honey extract for long-lasting protection',
+        ingredients: 'Honey Extract, Petroleum Jelly, Vitamin E',
+        benefits: ['Locks moisture', 'Soothes dryness', 'Soft silky finish', 'Gentle fragrance'],
+        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
+        sizes: [
+            { size: '200ml', price: 210 }
+        ],
+        rating: 4.6,
+        reviews: 38
+    },
+    {
+        id: 13,
+        name: 'Coconut Repair Shampoo',
+        category: 'shampoo',
+        description: 'Nourishing coconut shampoo designed for damaged and dry hair',
+        ingredients: 'Coconut Oil, Keratin, Aloe Vera, Gentle Cleansers',
+        benefits: ['Repairs dry hair', 'Adds shine', 'Strengthens strands', 'Fresh coconut scent'],
+        image: 'https://images.unsplash.com/photo-1527799820374-dcdfb3d8979f?w=600',
+        imageBack: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
+        sizes: [
+            { size: '1L', price: 150 }
+        ],
+        rating: 4.7,
+        reviews: 49
     }
 ];
 

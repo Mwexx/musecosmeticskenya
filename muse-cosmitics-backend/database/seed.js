@@ -115,6 +115,42 @@ const products = [
         ingredients: 'Strawberry Extract, Natural Oils, Vitamins, Gentle Cleansers',
         benefits: ['Fresh strawberry scent', 'Cleanses gently', 'Adds shine', 'Strengthens hair'],
         isFeatured: true
+    },
+    {
+        name: 'Shea Glow Lotion',
+        description: 'Hydrating lotion with shea butter and botanical oils for a soft glow',
+        category: 'lotions',
+        price: 120,
+        stock: 80,
+        image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600',
+        imageBack: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600',
+        ingredients: 'Shea Butter, Argan Oil, Aloe Vera, Vitamin E',
+        benefits: ['Deep moisture', 'Softens rough skin', 'Non-greasy finish', 'Healthy glow'],
+        isFeatured: true
+    },
+    {
+        name: 'Honey Silk Jelly',
+        description: 'Silky jelly blend with honey extract for long-lasting protection',
+        category: 'jelly',
+        price: 210,
+        stock: 60,
+        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
+        ingredients: 'Honey Extract, Petroleum Jelly, Vitamin E',
+        benefits: ['Locks moisture', 'Soothes dryness', 'Soft silky finish', 'Gentle fragrance'],
+        isFeatured: false
+    },
+    {
+        name: 'Coconut Repair Shampoo',
+        description: 'Nourishing coconut shampoo designed for damaged and dry hair',
+        category: 'shampoo',
+        price: 150,
+        stock: 70,
+        image: 'https://images.unsplash.com/photo-1527799820374-dcdfb3d8979f?w=600',
+        imageBack: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
+        ingredients: 'Coconut Oil, Keratin, Aloe Vera, Gentle Cleansers',
+        benefits: ['Repairs dry hair', 'Adds shine', 'Strengthens strands', 'Fresh coconut scent'],
+        isFeatured: true
     }
 ];
 
