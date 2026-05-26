@@ -617,15 +617,30 @@ function updateCartCount(count) {
 
 // ===== Social Login (Google, Facebook) =====
 function socialLogin(provider) {
-    // Redirect to OAuth provider
+    const providerName = provider === 'google' ? 'Google' : provider === 'facebook' ? 'Facebook' : provider;
+    const email = window.prompt(`Enter the email you want to use with ${providerName}:`);
+
+    if (!email) {
+        showNotification(`${providerName} sign in was cancelled.`, 'info');
+        return;
+    }
+
+    const name = window.prompt(`Enter your display name for ${providerName}:`, email.split('@')[0]);
+    if (!name) {
+        showNotification(`${providerName} sign in was cancelled.`, 'info');
+        return;
+    }
+
     const redirectUrl = encodeURIComponent(window.location.href);
+    const socialEmail = encodeURIComponent(email.trim());
+    const socialName = encodeURIComponent(name.trim());
     
     switch(provider) {
         case 'google':
-            window.location.href = `${API_BASE_URL}/auth/google?redirect=${redirectUrl}`;
+            window.location.href = `${API_BASE_URL}/auth/google?redirect=${redirectUrl}&email=${socialEmail}&name=${socialName}`;
             break;
         case 'facebook':
-            window.location.href = `${API_BASE_URL}/auth/facebook?redirect=${redirectUrl}`;
+            window.location.href = `${API_BASE_URL}/auth/facebook?redirect=${redirectUrl}&email=${socialEmail}&name=${socialName}`;
             break;
         default:
             showNotification('Social login not available', 'error');

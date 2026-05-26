@@ -6,6 +6,32 @@ const Cart = require('../models/Cart');
 const { sendEmail } = require('../config/email');
 const { welcomeEmailTemplate, resetPasswordEmailTemplate } = require('../utils/emailTemplates');
 
+function generateSocialPhone() {
+    const randomDigits = crypto.randomInt(10000000, 100000000).toString();
+    return `07${randomDigits}`;
+}
+
+async function createSocialUser(provider, email, name) {
+    let phone = generateSocialPhone();
+
+    while (await User.findOne({ phone })) {
+        phone = generateSocialPhone();
+    }
+
+    const user = await User.create({
+        name,
+        email,
+        phone,
+        password: crypto.randomBytes(32).toString('hex'),
+        isVerified: true,
+        avatar: 'default-avatar.jpg'
+    });
+
+    await Cart.create({ user: user._id });
+
+    return user;
+}
+
 // @desc    Register user
 // @route   POST /api/v1/auth/register
 // @access  Public
@@ -145,6 +171,52 @@ exports.login = async (req, res) => {
             message: 'Server error. Please try again.',
             error: error.message
         });
+    }
+};
+
+// @desc    Social login user
+// @route   GET /api/v1/auth/google
+// @route   GET /api/v1/auth/facebook
+// @access  Public
+exports.socialLogin = async (req, res) => {
+    try {
+        const provider = req.path.includes('facebook') ? 'facebook' : 'google';
+        const { email, name, redirect } = req.query;
+
+        if (!email || !name) {
+            const fallbackRedirect = `${config.FRONTEND_URL}/login.html?error=social_login_required`;
+            return res.redirect(redirect || fallbackRedirect);
+        }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const normalizedName = String(name).trim();
+
+        let user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            user = await createSocialUser(provider, normalizedEmail, normalizedName);
+        } else if (user.isActive === false) {
+            return res.redirect(`${config.FRONTEND_URL}/login.html?error=account_deactivated`);
+        }
+
+        const token = user.getSignedJwtToken();
+        const userPayload = encodeURIComponent(JSON.stringify({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            avatar: user.avatar,
+            isVerified: user.isVerified
+        }));
+
+        const targetUrl = redirect || `${config.FRONTEND_URL}/dashboard.html`;
+        const joiner = targetUrl.includes('?') ? '&' : '?';
+
+        return res.redirect(`${targetUrl}${joiner}token=${token}&user=${userPayload}`);
+    } catch (error) {
+        console.error('Social login error:', error);
+        return res.redirect(`${config.FRONTEND_URL}/login.html?error=social_login_failed`);
     }
 };
 

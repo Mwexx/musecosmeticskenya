@@ -23,6 +23,8 @@ const loginValidation = [
 // Routes
 router.post('/register', registerValidation, authController.register);
 router.post('/login', loginValidation, authController.login);
+router.get('/google', authController.socialLogin);
+router.get('/facebook', authController.socialLogin);
 router.post('/logout', authController.logout);
 router.get('/me', verifyToken, authController.getMe);
 router.put('/profile', verifyToken, authController.updateProfile);
