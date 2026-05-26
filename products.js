@@ -237,6 +237,14 @@ function normalizeApiProduct(product) {
     };
 }
 
+function getCatalogProducts() {
+    return activeProducts.length > 0 ? activeProducts : productsData;
+}
+
+function getCatalogProductById(productId) {
+    return getCatalogProducts().find(product => Number(product.id) === Number(productId)) || null;
+}
+
 async function loadProductsFromApi() {
     try {
         const response = await fetch(`${API_BASE_URL}/products?limit=100`);
@@ -327,14 +335,14 @@ function renderStars(rating) {
 
 // ===== Product Details =====
 function loadProductDetails(productId) {
-    const product = activeProducts.find(p => p.id === productId);
+    const product = getCatalogProductById(productId);
     if (!product) return null;
     
     return product;
 }
 
 function showSizeOptions(productId) {
-    const product = productsData.find(p => p.id === productId);
+    const product = getCatalogProductById(productId);
     if (!product) return;
     
     const modal = document.createElement('div');
@@ -360,7 +368,7 @@ function showSizeOptions(productId) {
 
 function selectSize(productId, size, price) {
     closeModal();
-    addToCart(productId, 1, size);
+    addToCart(productId, 1, size, price);
 }
 
 function closeModal() {
@@ -380,6 +388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const productsGrid = document.getElementById('productsGrid');
     if (productsGrid) {
         activeProducts = await loadProductsFromApi();
+        window.activeProducts = activeProducts;
         renderProducts(activeProducts);
         
         // Filter functionality
@@ -404,6 +413,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Product details page
     const productDetailsContainer = document.getElementById('productDetails');
     if (productDetailsContainer) {
+        activeProducts = await loadProductsFromApi();
+        window.activeProducts = activeProducts;
         const urlParams = new URLSearchParams(window.location.search);
         const productId = parseInt(urlParams.get('id'));
         const product = loadProductDetails(productId);
@@ -423,3 +434,6 @@ window.closeModal = closeModal;
 window.viewProduct = viewProduct;
 window.filterProducts = filterProducts;
 window.renderProducts = renderProducts;
+window.loadProductsFromApi = loadProductsFromApi;
+window.getCatalogProducts = getCatalogProducts;
+window.getCatalogProductById = getCatalogProductById;

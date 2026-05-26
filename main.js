@@ -238,7 +238,7 @@ async function loadFeaturedProducts() {
         
         container.innerHTML = products.map(product => `
             <div class="product-card" data-id="${product.id}">
-                <div class="product-image">
+                <div class="product-image" onclick="viewProduct(${product.id})" style="cursor:pointer;">
                     <img src="${product.image}" alt="${product.name}">
                     ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
                 </div>

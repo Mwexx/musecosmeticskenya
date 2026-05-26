@@ -1,5 +1,6 @@
 // ===== Cart Management =====
 let cart = [];
+let productCatalog = [];
 const API_BASE_URL = getApiBaseUrl();
 
 function getApiBaseUrl() {
@@ -23,6 +24,85 @@ function loadCart() {
     }
 }
 
+function getAuthToken() {
+    return localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+}
+
+function normalizeCatalogProduct(product) {
+    return {
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        description: product.description || '',
+        ingredients: product.ingredients || '',
+        benefits: Array.isArray(product.benefits) ? product.benefits : [],
+        image: product.image,
+        imageBack: product.imageBack || product.image,
+        sizes: Array.isArray(product.sizes) && product.sizes.length > 0
+            ? product.sizes
+            : [{ size: 'Standard', price: product.price || 0 }],
+        price: product.price || 0
+    };
+}
+
+async function loadProductCatalog() {
+    if (window.getCatalogProducts) {
+        const sharedCatalog = window.getCatalogProducts();
+        if (Array.isArray(sharedCatalog) && sharedCatalog.length > 0) {
+            productCatalog = sharedCatalog.map(normalizeCatalogProduct);
+            return productCatalog;
+        }
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/products?limit=100`);
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok && result.success && Array.isArray(result.data)) {
+            productCatalog = result.data.map(normalizeCatalogProduct);
+            return productCatalog;
+        }
+    } catch (error) {
+        console.warn('Unable to load product catalog:', error);
+    }
+
+    return productCatalog;
+}
+
+function resolveProductFromCatalog(productId) {
+    const normalizedId = Number(productId);
+
+    if (window.getCatalogProductById) {
+        const product = window.getCatalogProductById(normalizedId);
+        if (product) {
+            return normalizeCatalogProduct(product);
+        }
+    }
+
+    const cached = productCatalog.find(product => Number(product.id) === normalizedId);
+    return cached || null;
+}
+
+function resolvePrice(product, size, explicitPrice) {
+    if (typeof explicitPrice === 'number') {
+        return explicitPrice;
+    }
+
+    const sizeEntry = Array.isArray(product.sizes)
+        ? product.sizes.find(entry => entry.size === size)
+        : null;
+
+    if (sizeEntry) {
+        return sizeEntry.price;
+    }
+
+    if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+        return product.sizes[0].price;
+    }
+
+    return product.price || 0;
+}
+
 // Save cart to localStorage
 function saveCart() {
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -39,24 +119,26 @@ function updateCartCount() {
 }
 
 // Add item to cart
-function addToCart(productId, quantity = 1, size = null) {
+function addToCart(productId, quantity = 1, size = null, price = null) {
     // Check if user is logged in
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) {
         showNotification('Please login to add items to cart', 'error');
         window.location.href = 'login.html';
         return;
     }
     
-    // Get product details (in production, fetch from API)
-    const product = getProductById(productId);
+    const product = resolveProductFromCatalog(productId);
     if (!product) {
         showNotification('Product not found', 'error');
         return;
     }
+
+    const selectedSize = size || product.sizes?.[0]?.size || 'Standard';
+    const selectedPrice = resolvePrice(product, selectedSize, price);
     
     const cartItemIndex = cart.findIndex(item => 
-        item.id === productId && item.size === size
+        Number(item.id) === Number(productId) && item.size === selectedSize
     );
     
     if (cartItemIndex > -1) {
@@ -65,10 +147,12 @@ function addToCart(productId, quantity = 1, size = null) {
         cart.push({
             id: product.id,
             name: product.name,
-            price: product.price,
-            size: size || product.sizes[0],
+            price: selectedPrice,
+            size: selectedSize,
             quantity: quantity,
-            image: product.image
+            image: product.image,
+            imageBack: product.imageBack,
+            category: product.category
         });
     }
     
@@ -113,30 +197,6 @@ function getCartTotal() {
 function clearCart() {
     cart = [];
     saveCart();
-}
-
-// Get product by ID (mock function - replace with API call)
-function getProductById(id) {
-    // Mock products data
-    const products = [
-        {
-            id: 1,
-            name: 'Cocoa Butter Lotion',
-            price: 100,
-            sizes: ['100ml', '200ml', '400ml'],
-            image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400'
-        },
-        {
-            id: 2,
-            name: 'Carrot Light Lotion',
-            price: 100,
-            sizes: ['100ml', '200ml', '400ml'],
-            image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=400'
-        }
-        // Add more products...
-    ];
-    
-    return products.find(p => p.id === id);
 }
 
 // Render cart page
@@ -190,7 +250,7 @@ async function checkout() {
         return;
     }
     
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) {
         showNotification('Please login to checkout', 'error');
         window.location.href = 'login.html';
@@ -198,25 +258,48 @@ async function checkout() {
     }
     
     try {
-        const orderData = {
-            items: cart,
-            total: getCartTotal(),
-            deliveryAddress: document.getElementById('deliveryAddress')?.value || '',
-            phoneNumber: document.getElementById('phoneNumber')?.value || ''
-        };
-        
-        // In production: const response = await fetch('/api/orders', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(orderData) })
-        
-        showNotification('Order placed successfully!', 'success');
+        const response = await fetch(`${API_BASE_URL}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                items: cart.map(item => ({
+                    product: item.id,
+                    quantity: item.quantity,
+                    size: item.size
+                })),
+                deliveryAddress: document.getElementById('deliveryAddress')?.value || '',
+                town: document.getElementById('town')?.value || 'Nakuru',
+                county: document.getElementById('county')?.value || 'Nakuru',
+                phone: document.getElementById('phoneNumber')?.value || '',
+                paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'mpesa',
+                deliveryInstructions: document.getElementById('deliveryInstructions')?.value || ''
+            })
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result.success === false) {
+            throw new Error(result.message || 'Failed to place order');
+        }
+
+        showNotification(result.message || 'Order placed successfully!', 'success');
         clearCart();
         setTimeout(() => {
             window.location.href = 'dashboard.html';
         }, 2000);
         
     } catch (error) {
-        showNotification('Failed to place order. Please try again.', 'error');
+        showNotification(error.message || 'Failed to place order. Please try again.', 'error');
     }
 }
+
+window.loadCart = loadCart;
+window.saveCart = saveCart;
+window.renderCart = renderCart;
+window.loadProductCatalog = loadProductCatalog;
+window.getAuthToken = getAuthToken;
 // Export functions
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;

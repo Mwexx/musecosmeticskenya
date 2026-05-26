@@ -86,7 +86,7 @@
                     <i class="fas fa-bars sidebar-toggle" id="sidebarToggle"></i>
                     <h1 id="pageTitle">Admin Overview</h1>
                 </div>
-                <button class="btn btn-primary" id="addProductBtn" type="button" onclick="openProductModal()" style="display: none;">
+                <button class="btn btn-primary" id="addProductBtn" style="display: none;">
                     <i class="fas fa-plus"></i> Add Product
                 </button>
             </div>
@@ -250,94 +250,21 @@
             <form id="addProductForm" style="margin-top: 20px;">
                 <div class="form-group">
                     <label>Product Name</label>
-                    <input type="text" id="productName" required>
+                    <input type="text" required>
                 </div>
                 <div class="form-group">
                     <label>Category</label>
-                    <select id="productCategory" required>
+                    <select required>
                         <option value="lotions">Lotions</option>
                         <option value="jelly">Jelly</option>
                         <option value="shampoo">Shampoo</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="productDescription" rows="4" required style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
-                </div>
-                <div class="form-group">
                     <label>Price (Ksh)</label>
-                    <input type="number" id="productPrice" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label>Stock</label>
-                    <input type="number" id="productStock" min="0" value="100" required>
-                </div>
-                <div class="form-group">
-                    <label>Product Image</label>
-                    <input type="file" id="productImage" accept="image/*">
-                </div>
-                <div class="form-group">
-                    <label>Back Image URL</label>
-                    <input type="url" id="productImageBack" placeholder="Optional image for product details back view">
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500;">
-                        <input type="checkbox" id="productFeatured">
-                        Feature this product on the home page
-                    </label>
+                    <input type="number" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Save Product</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Product Modal -->
-    <div id="editProductModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 600px; padding: 30px;">
-            <span class="close-modal" onclick="closeEditProductModal()" style="float: right; cursor: pointer; font-size: 1.5rem;">&times;</span>
-            <h3>Edit Product</h3>
-            <form id="editProductForm" style="margin-top: 20px;">
-                <input type="hidden" id="editProductId">
-                <div class="form-group">
-                    <label>Product Name</label>
-                    <input type="text" id="editProductName" required>
-                </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="editProductCategory" required>
-                        <option value="lotions">Lotions</option>
-                        <option value="jelly">Jelly</option>
-                        <option value="milking">Milking Jelly</option>
-                        <option value="shampoo">Shampoo</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="editProductDescription" rows="4" required style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Price (Ksh)</label>
-                    <input type="number" id="editProductPrice" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label>Stock</label>
-                    <input type="number" id="editProductStock" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label>New Product Image</label>
-                    <input type="file" id="editProductImage" accept="image/*">
-                </div>
-                <div class="form-group">
-                    <label>Back Image URL</label>
-                    <input type="url" id="editProductImageBack" placeholder="Optional image for product details back view">
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500;">
-                        <input type="checkbox" id="editProductFeatured">
-                        Feature this product on the home page
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-primary">Update Product</button>
             </form>
         </div>
     </div>

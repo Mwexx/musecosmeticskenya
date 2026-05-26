@@ -386,11 +386,12 @@
         function addToCartFromDetail(productId) {
             const quantity = parseInt(document.getElementById('quantity').value);
             const size = currentSize || '200ml';
-            addToCart(productId, quantity, size);
+            addToCart(productId, quantity, size, selectedPrice || null);
         }
         
         function loadRelatedProducts(category, currentId) {
-            const related = productsData.filter(p => p.category === category && p.id !== currentId).slice(0, 4);
+            const catalog = typeof getCatalogProducts === 'function' ? getCatalogProducts() : productsData;
+            const related = catalog.filter(p => p.category === category && p.id !== currentId).slice(0, 4);
             renderProducts(related, 'relatedProducts');
         }
         
@@ -448,7 +449,9 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const productId = parseInt(urlParams.get('id'));
-            let product = productsData.find(p => p.id === productId);
+            let product = typeof getCatalogProductById === 'function'
+                ? getCatalogProductById(productId)
+                : productsData.find(p => p.id === productId);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/products/${productId}`);

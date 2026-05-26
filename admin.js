@@ -1,6 +1,4 @@
 const API_BASE_URL = getApiBaseUrl();
-let adminProductsCache = [];
-let adminOrdersCache = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = getAuthToken();
@@ -18,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeSidebar();
     initializeProductForm();
-    initializeEditProductForm();
     loadAdminData();
 });
 
@@ -126,13 +123,6 @@ function initializeProductForm() {
     form.addEventListener('submit', handleAddProduct);
 }
 
-function initializeEditProductForm() {
-    const form = document.getElementById('editProductForm');
-    if (!form) return;
-
-    form.addEventListener('submit', handleEditProduct);
-}
-
 async function handleAddProduct(e) {
     e.preventDefault();
 
@@ -143,7 +133,6 @@ async function handleAddProduct(e) {
     const price = document.getElementById('productPrice')?.value;
     const stock = document.getElementById('productStock')?.value;
     const imageFile = document.getElementById('productImage')?.files?.[0];
-    const imageBack = document.getElementById('productImageBack')?.value.trim();
     const isFeatured = document.getElementById('productFeatured')?.checked || false;
 
     if (!name || !category || !description || !price || !stock) {
@@ -162,9 +151,6 @@ async function handleAddProduct(e) {
         formData.append('price', price);
         formData.append('stock', stock);
         formData.append('isFeatured', String(isFeatured));
-        if (imageBack) {
-            formData.append('imageBack', imageBack);
-        }
 
         if (imageFile) {
             formData.append('image', imageFile);
@@ -184,87 +170,6 @@ async function handleAddProduct(e) {
     } finally {
         submitButton.disabled = false;
         submitButton.innerHTML = '<i class="fas fa-plus"></i> Save Product';
-    }
-}
-
-function openEditProductModal(productId) {
-    const product = adminProductsCache.find(item => String(item._id || item.id) === String(productId));
-
-    if (!product) {
-        showNotification('Product not found.', 'error');
-        return;
-    }
-
-    document.getElementById('editProductId').value = product._id || product.id || '';
-    document.getElementById('editProductName').value = product.name || '';
-    document.getElementById('editProductCategory').value = product.category || 'lotions';
-    document.getElementById('editProductDescription').value = product.description || '';
-    document.getElementById('editProductPrice').value = product.price ?? 0;
-    document.getElementById('editProductStock').value = product.stock ?? 0;
-    document.getElementById('editProductImageBack').value = product.imageBack || '';
-    document.getElementById('editProductFeatured').checked = Boolean(product.isFeatured);
-
-    const modal = document.getElementById('editProductModal');
-    if (modal) modal.style.display = 'block';
-}
-
-function closeEditProductModal() {
-    const modal = document.getElementById('editProductModal');
-    if (modal) modal.style.display = 'none';
-}
-
-async function handleEditProduct(e) {
-    e.preventDefault();
-
-    const productId = document.getElementById('editProductId')?.value;
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    const name = document.getElementById('editProductName')?.value.trim();
-    const category = document.getElementById('editProductCategory')?.value;
-    const description = document.getElementById('editProductDescription')?.value.trim();
-    const price = document.getElementById('editProductPrice')?.value;
-    const stock = document.getElementById('editProductStock')?.value;
-    const imageFile = document.getElementById('editProductImage')?.files?.[0];
-    const imageBack = document.getElementById('editProductImageBack')?.value.trim();
-    const isFeatured = document.getElementById('editProductFeatured')?.checked || false;
-
-    if (!productId || !name || !category || !description || !price || !stock) {
-        showNotification('Please complete all required product fields.', 'error');
-        return;
-    }
-
-    try {
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('category', category);
-        formData.append('description', description);
-        formData.append('price', price);
-        formData.append('stock', stock);
-        formData.append('isFeatured', String(isFeatured));
-
-        if (imageBack) {
-            formData.append('imageBack', imageBack);
-        }
-
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
-
-        await fetchApi(`/products/${productId}`, {
-            method: 'PUT',
-            body: formData
-        });
-
-        showNotification('Product updated successfully.', 'success');
-        closeEditProductModal();
-        await loadAdminData();
-    } catch (error) {
-        showNotification(error.message || 'Failed to update product.', 'error');
-    } finally {
-        submitButton.disabled = false;
-        submitButton.innerHTML = '<i class="fas fa-save"></i> Update Product';
     }
 }
 
@@ -288,21 +193,16 @@ async function loadAdminData() {
         document.getElementById('adminTotalOrders').textContent = String(orderStats.data?.totalOrders || 0);
         document.getElementById('adminTotalProducts').textContent = String(productStats.data?.totalProducts || 0);
 
-        adminProductsCache = Array.isArray(products.data) ? products.data : [];
-        adminOrdersCache = Array.isArray(orders.data) ? orders.data : [];
-
         const customerUsers = Array.isArray(users.data) ? users.data.filter(item => item.role !== 'admin') : [];
         document.getElementById('adminNewCustomers').textContent = String(customerUsers.length);
 
-        renderProducts(productsTable, adminProductsCache);
-        renderOrders(ordersTable, recentOrdersTable, adminOrdersCache);
-        renderCustomers(customersTable, customerUsers, adminOrdersCache);
+        renderProducts(productsTable, Array.isArray(products.data) ? products.data : []);
+        renderOrders(ordersTable, recentOrdersTable, Array.isArray(orders.data) ? orders.data : []);
+        renderCustomers(customersTable, customerUsers, Array.isArray(orders.data) ? orders.data : []);
         renderReviews(reviewsTable);
     } catch (error) {
         console.error('Admin dashboard load error:', error);
         showNotification(error.message || 'Failed to load admin data.', 'error');
-        adminProductsCache = [];
-        adminOrdersCache = [];
         renderProducts(productsTable, []);
         renderOrders(ordersTable, recentOrdersTable, []);
         renderCustomers(customersTable, [], []);
@@ -320,14 +220,14 @@ function renderProducts(container, products) {
 
     container.innerHTML = products.map(product => `
         <tr>
-            <td><img src="${product.image || product.imageBack || 'default-product.jpg'}" class="product-img-thumb" alt="${product.name || 'Product'}"></td>
+            <td><img src="${product.image || 'default-product.jpg'}" class="product-img-thumb" alt="${product.name || 'Product'}"></td>
             <td>${product.name || ''}</td>
             <td>${product.category || ''}</td>
             <td>Ksh ${Number(product.price || 0).toLocaleString()}</td>
             <td>${product.stock ?? 0}</td>
             <td>
-                <button class="action-btn btn-edit" type="button" onclick="openEditProductModal('${product._id || ''}')"><i class="fas fa-edit"></i></button>
-                <button class="action-btn btn-delete" type="button" onclick="deleteProduct('${product._id || ''}')"><i class="fas fa-trash"></i></button>
+                <button class="action-btn btn-edit"><i class="fas fa-edit"></i></button>
+                <button class="action-btn btn-delete"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -346,9 +246,11 @@ function renderOrders(allOrdersContainer, recentOrdersContainer, orders) {
                     <td>Ksh ${Number(order.total || 0).toLocaleString()}</td>
                     <td><span class="status-badge status-${order.status || 'pending'}">${order.status || 'pending'}</span></td>
                     <td>
-                        <button type="button" class="btn btn-primary" onclick="approveOrder('${order._id || order.orderNumber || ''}')" ${order.status === 'completed' ? 'disabled' : ''}>
-                            <i class="fas fa-check"></i> ${order.status === 'completed' ? 'Approved' : 'Approve'}
-                        </button>
+                        <select onchange="updateOrderStatus(this, '${order._id || order.orderNumber || ''}')" style="padding: 5px;">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>
                     </td>
                 </tr>
             `).join('');
@@ -419,61 +321,15 @@ function closeProductModal() {
     if (modal) modal.style.display = 'none';
 }
 
-function approveOrder(orderId) {
-    updateOrderStatus(orderId, 'completed');
-}
-
 window.onclick = function(event) {
-    const productModal = document.getElementById('productModal');
-    const editProductModal = document.getElementById('editProductModal');
-    if (event.target === productModal) {
-        productModal.style.display = 'none';
-    }
-    if (event.target === editProductModal) {
-        editProductModal.style.display = 'none';
+    const modal = document.getElementById('productModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
     }
 };
 
-function updateOrderStatus(orderId, status) {
-    if (!orderId) {
-        showNotification('Unable to update order without an order ID.', 'error');
-        return;
-    }
-
-    fetchApi(`/orders/${orderId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status })
-    })
-        .then(() => {
-            showNotification(`Order ${orderId} approved as ${status}.`, 'success');
-            loadAdminData();
-        })
-        .catch(error => {
-            showNotification(error.message || 'Failed to update order status.', 'error');
-            loadAdminData();
-        });
-}
-
-async function deleteProduct(productId) {
-    if (!productId) {
-        showNotification('Unable to delete product without an ID.', 'error');
-        return;
-    }
-
-    if (!confirm('Delete this product?')) {
-        return;
-    }
-
-    try {
-        await fetchApi(`/products/${productId}`, {
-            method: 'DELETE'
-        });
-
-        showNotification('Product deleted successfully.', 'success');
-        await loadAdminData();
-    } catch (error) {
-        showNotification(error.message || 'Failed to delete product.', 'error');
-    }
+function updateOrderStatus(select, orderId) {
+    showNotification(`Order ${orderId} status updated to ${select.value}`, 'success');
 }
 
 function logout() {
