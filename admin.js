@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeSidebar();
     initializeProductForm();
+    initializeAdminActions();
     loadAdminData();
 });
 
@@ -123,6 +124,13 @@ function initializeProductForm() {
     form.addEventListener('submit', handleAddProduct);
 }
 
+function initializeAdminActions() {
+    const addProductBtn = document.getElementById('addProductBtn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', openProductModal);
+    }
+}
+
 async function handleAddProduct(e) {
     e.preventDefault();
 
@@ -226,8 +234,8 @@ function renderProducts(container, products) {
             <td>Ksh ${Number(product.price || 0).toLocaleString()}</td>
             <td>${product.stock ?? 0}</td>
             <td>
-                <button class="action-btn btn-edit"><i class="fas fa-edit"></i></button>
-                <button class="action-btn btn-delete"><i class="fas fa-trash"></i></button>
+                <button class="action-btn btn-edit" type="button" onclick="editProduct('${product._id || ''}')"><i class="fas fa-edit"></i></button>
+                <button class="action-btn btn-delete" type="button" onclick="deleteProduct('${product._id || ''}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -329,7 +337,54 @@ window.onclick = function(event) {
 };
 
 function updateOrderStatus(select, orderId) {
-    showNotification(`Order ${orderId} status updated to ${select.value}`, 'success');
+    if (!orderId) {
+        showNotification('Unable to update order without an order ID.', 'error');
+        return;
+    }
+
+    fetchApi(`/orders/${orderId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: select.value })
+    })
+        .then(() => {
+            showNotification(`Order ${orderId} approved as ${select.value}.`, 'success');
+            loadAdminData();
+        })
+        .catch(error => {
+            showNotification(error.message || 'Failed to update order status.', 'error');
+            loadAdminData();
+        });
+}
+
+async function editProduct(productId) {
+    if (!productId) {
+        showNotification('Unable to edit product without an ID.', 'error');
+        return;
+    }
+
+    showNotification('Product editing is not wired yet. Use Add Product or delete for now.', 'info');
+}
+
+async function deleteProduct(productId) {
+    if (!productId) {
+        showNotification('Unable to delete product without an ID.', 'error');
+        return;
+    }
+
+    if (!confirm('Delete this product?')) {
+        return;
+    }
+
+    try {
+        await fetchApi(`/products/${productId}`, {
+            method: 'DELETE'
+        });
+
+        showNotification('Product deleted successfully.', 'success');
+        await loadAdminData();
+    } catch (error) {
+        showNotification(error.message || 'Failed to delete product.', 'error');
+    }
 }
 
 function logout() {
