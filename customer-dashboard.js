@@ -1,7 +1,9 @@
+const API_BASE_URL = getApiBaseUrl();
+
 // Check Authentication
-document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = getAuthToken();
+    const user = getCurrentUser();
     
     if (!token) {
         window.location.href = 'login.html';
@@ -11,12 +13,81 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update User Info
     document.getElementById('userName').textContent = `Welcome, ${user.name || 'User'}`;
     document.getElementById('userEmail').textContent = user.email || 'user@example.com';
+    if (typeof loadCart === 'function') {
+        loadCart();
+    }
     
     // Initialize Dashboard
-    loadDashboardData();
+    await loadDashboardData();
     initializeSidebar();
     initializeProfileForm(user);
 });
+
+function getApiBaseUrl() {
+    if (window.API_BASE_URL) {
+        return window.API_BASE_URL;
+    }
+
+    if (window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) {
+        return 'http://localhost:5000/api/v1';
+    }
+
+    return '/api/v1';
+}
+
+function getAuthToken() {
+    return localStorage.getItem('token')
+        || localStorage.getItem('authToken')
+        || sessionStorage.getItem('token')
+        || sessionStorage.getItem('authToken');
+}
+
+function getCurrentUser() {
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : {};
+}
+
+function formatCurrency(value) {
+    return `Ksh ${Number(value || 0).toLocaleString()}/=`;
+}
+
+function getCurrentCart() {
+    try {
+        return JSON.parse(localStorage.getItem('cart') || '[]');
+    } catch (error) {
+        return [];
+    }
+}
+
+function renderCartPreview(cartItems) {
+    const container = document.getElementById('cartPreviewList');
+    const cartItemCount = document.getElementById('cartItemCount');
+    const cartTotalSummary = document.getElementById('cartTotalSummary');
+
+    if (!container) return;
+
+    const totalItems = cartItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    const totalAmount = cartItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
+
+    if (cartItemCount) cartItemCount.textContent = String(totalItems);
+    if (cartTotalSummary) cartTotalSummary.textContent = formatCurrency(totalAmount);
+
+    if (cartItems.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-light);">Your cart is empty. Browse products and add sizes to see them here.</p>';
+        return;
+    }
+
+    container.innerHTML = cartItems.map(item => `
+        <div class="cart-preview-item">
+            <img src="${item.image}" alt="${item.name}">
+            <div>
+                <h5>${item.name}</h5>
+                <p>${item.size} x ${item.quantity}</p>
+            </div>
+            <div class="line-total">${formatCurrency(item.price * item.quantity)}</div>
+        </div>
+    `).join('');
+}
 
 // Sidebar Navigation
 function initializeSidebar() {
@@ -68,48 +139,57 @@ function switchSection(sectionId) {
     if (link) link.click();
 }
 
-// Load Mock Data
-function loadDashboardData() {
-    // Mock Orders
-    const orders = [
-        { id: '#ORD-001', date: '2026-03-01', status: 'completed', total: 300, items: 3 },
-        { id: '#ORD-002', date: '2026-03-05', status: 'processing', total: 150, items: 2 },
-        { id: '#ORD-003', date: '2026-03-10', status: 'pending', total: 500, items: 5 }
-    ];
-    
-    // Update Stats
-    document.getElementById('totalOrders').textContent = orders.length;
-    document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending').length;
-    document.getElementById('totalSpent').textContent = `Ksh ${orders.reduce((sum, o) => sum + o.total, 0)}/=`;
-    
-    // Render Recent Orders
+async function loadDashboardData() {
+    const cartItems = getCurrentCart();
+    renderCartPreview(cartItems);
+
+    const token = getAuthToken();
+    let orders = [];
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/orders/my-orders`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (response.ok && result.success && Array.isArray(result.data)) {
+            orders = result.data;
+        }
+    } catch (error) {
+        console.warn('Unable to load live orders:', error);
+    }
+
+    document.getElementById('totalOrders').textContent = String(orders.length);
+    document.getElementById('pendingOrders').textContent = String(orders.filter(order => order.status === 'pending').length);
+    document.getElementById('totalSpent').textContent = formatCurrency(orders.reduce((sum, order) => sum + Number(order.total || 0), 0));
+
     const recentTable = document.getElementById('recentOrdersTable');
     const allTable = document.getElementById('allOrdersTable');
-    
-    const renderRows = (data) => {
-        return data.map(order => `
-            <tr>
-                <td>${order.id}</td>
-                <td>${order.date}</td>
-                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                <td>Ksh ${order.total}/=</td>
-                <td><button class="action-btn btn-view">View</button></td>
-            </tr>
-        `).join('');
-    };
-    
-    if (recentTable) recentTable.innerHTML = renderRows(orders.slice(0, 3));
-    if (allTable) allTable.innerHTML = renderRows(orders);
-    
-    // Render Addresses
+
+    const renderRows = (data) => data.map(order => `
+        <tr>
+            <td>${order.orderNumber || order.id || ''}</td>
+            <td>${new Date(order.createdAt || Date.now()).toISOString().slice(0, 10)}</td>
+            <td><span class="status-badge status-${order.status || 'pending'}">${order.status || 'pending'}</span></td>
+            <td>${formatCurrency(order.total)}</td>
+            <td><button class="action-btn btn-view">View</button></td>
+        </tr>
+    `).join('');
+
+    if (recentTable) recentTable.innerHTML = orders.length > 0 ? renderRows(orders.slice(0, 3)) : '<tr><td colspan="5">No orders yet.</td></tr>';
+    if (allTable) allTable.innerHTML = orders.length > 0 ? renderRows(orders) : '<tr><td colspan="6">No orders yet.</td></tr>';
+
     const addressesList = document.getElementById('addressesList');
     if (addressesList) {
+        const user = getCurrentUser();
         addressesList.innerHTML = `
             <div class="stat-card" style="margin-bottom: 15px;">
                 <div>
-                    <h4>Home</h4>
-                    <p>Kiamunyi, Nakuru County, Kenya</p>
-                    <p>Phone: +254 104 081 145</p>
+                    <h4>${user.name || 'Saved Address'}</h4>
+                    <p>${user.address || 'Kiamunyi, Nakuru County, Kenya'}</p>
+                    <p>Phone: ${user.phone || '+254 104 081 145'}</p>
                 </div>
                 <button class="action-btn btn-edit">Edit</button>
             </div>

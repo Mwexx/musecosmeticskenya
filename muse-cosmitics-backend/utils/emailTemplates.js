@@ -127,3 +127,43 @@ exports.orderConfirmationTemplate = (name, orderNumber, total) => `
     </div>
 </html>
 `;
+
+// Order Status Update Template
+exports.orderStatusUpdateTemplate = (name, orderNumber, status) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #0f8b8d, #2bbbad); color: white; padding: 40px 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; background: #f9f9f9; }
+        .status-box { background: white; padding: 24px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer { text-align: center; padding: 30px; color: #666; font-size: 12px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Update</h1>
+        </div>
+        <div class="content">
+            <p>Dear ${name},</p>
+            <p>Your order <strong>${orderNumber}</strong> has been updated.</p>
+            <div class="status-box">
+                <p style="margin: 0;">Current status:</p>
+                <h2 style="margin: 8px 0 0; text-transform: capitalize; color: #d4a574;">${status}</h2>
+            </div>
+            <p>We will keep you posted as your order moves through the approval and delivery process.</p>
+            <p>Thank you for shopping with Muse Cosmetics.</p>
+        </div>
+        <div class="footer">
+            <p>Kiamunyi, Nakuru, Kenya | www.musecosmetics.co.ke</p>
+            <p>© 2026 Muse Cosmetics. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;

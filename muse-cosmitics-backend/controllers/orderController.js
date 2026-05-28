@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
 const { sendEmail } = require('../config/email');
-const { orderConfirmationTemplate } = require('../utils/emailTemplates');
+const { orderConfirmationTemplate, orderStatusUpdateTemplate } = require('../utils/emailTemplates');
 
 // @desc    Create new order
 // @route   POST /api/v1/orders
@@ -39,16 +39,22 @@ exports.createOrder = async (req, res) => {
                 });
             }
             
+            const selectedSize = item.size || product.sizes?.[0]?.size || 'Standard';
+            const sizeEntry = Array.isArray(product.sizes)
+                ? product.sizes.find(size => size.size === selectedSize)
+                : null;
+            const unitPrice = Number(item.price ?? sizeEntry?.price ?? product.price ?? 0);
+
             orderItems.push({
                 product: product._id,
                 name: product.name,
-                size: item.size,
-                price: product.price,
+                size: selectedSize,
+                price: unitPrice,
                 quantity: item.quantity,
                 image: product.image
             });
             
-            subtotal += product.price * item.quantity;
+            subtotal += unitPrice * item.quantity;
             
             // Update product stock
             product.stock -= item.quantity;
@@ -223,13 +229,24 @@ exports.updateOrderStatus = async (req, res) => {
                 ...(status === 'cancelled' && { cancelledAt: new Date() })
             },
             { new: true, runValidators: true }
-        );
+        ).populate('user', 'name email');
         
         if (!order) {
             return res.status(404).json({
                 success: false,
                 message: 'Order not found.'
             });
+        }
+
+        try {
+            const customerName = order.user?.name || 'Customer';
+            await sendEmail({
+                to: order.email,
+                subject: `Muse Cosmetics order ${status}`,
+                html: orderStatusUpdateTemplate(customerName, order.orderNumber, status)
+            });
+        } catch (emailError) {
+            console.error('Order status email failed:', emailError);
         }
         
         res.json({

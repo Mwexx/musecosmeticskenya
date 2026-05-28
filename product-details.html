@@ -22,6 +22,28 @@
         .product-images {
             position: relative;
         }
+        .product-image-shell {
+            position: relative;
+            padding: 18px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .product-image-shell.theme-carrot {
+            background: linear-gradient(135deg, rgba(255, 196, 210, 0.92), rgba(255, 241, 245, 0.94));
+        }
+        .product-image-shell.theme-aloe {
+            background: linear-gradient(135deg, rgba(190, 228, 255, 0.92), rgba(237, 246, 255, 0.94));
+        }
+        .product-image-shell.theme-ocean {
+            background: linear-gradient(135deg, rgba(205, 244, 243, 0.92), rgba(239, 252, 251, 0.94));
+        }
+        .product-image-shell.theme-glycerin {
+            background: linear-gradient(135deg, rgba(252, 240, 212, 0.94), rgba(255, 251, 241, 0.96));
+        }
+        .product-image-shell.theme-milking {
+            background: linear-gradient(135deg, rgba(244, 238, 231, 0.94), rgba(255, 252, 248, 0.96));
+        }
         .main-image {
             width: 100%;
             height: 500px;
@@ -29,9 +51,24 @@
             border-radius: var(--border-radius);
             cursor: pointer;
             transition: transform 0.5s ease;
+            box-shadow: var(--shadow);
         }
         .main-image:hover {
             transform: rotateY(180deg);
+        }
+        .detail-note {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            color: var(--text-light);
+            font-size: 0.92rem;
+        }
+        .detail-note span {
+            background: rgba(255,255,255,0.75);
+            padding: 8px 12px;
+            border-radius: 999px;
         }
         .image-hint {
             position: absolute;
@@ -62,6 +99,10 @@
             font-weight: 700;
             color: var(--primary-color);
             margin: 20px 0;
+        }
+        .size-note {
+            color: var(--text-light);
+            margin-top: -12px;
         }
         .size-selector {
             margin: 30px 0;
@@ -280,13 +321,20 @@
 
             const reviewCount = Array.isArray(product.reviews) ? product.reviews.length : (product.reviews || product.reviewCount || 0);
             const rating = product.rating ?? product.averageRating ?? 0;
+            const themeClass = typeof getProductThemeClass === 'function' ? getProductThemeClass(product) : '';
             
             container.innerHTML = `
                 <div class="product-detail-grid">
                     <div class="product-images">
-                        <img src="${product.image}" alt="${product.name}" class="main-image" id="mainImage">
-                        <div class="image-hint">
-                            <i class="fas fa-sync-alt"></i> Click to rotate
+                        <div class="product-image-shell ${themeClass}">
+                            <img src="${product.image}" alt="${product.name}" class="main-image" id="mainImage">
+                            <div class="image-hint">
+                                <i class="fas fa-sync-alt"></i> Click to rotate
+                            </div>
+                        </div>
+                        <div class="detail-note">
+                            <span>Tap the image to switch views</span>
+                            <span>Add to cart after choosing a size</span>
                         </div>
                     </div>
                     <div class="product-info-detail">
@@ -296,16 +344,15 @@
                             <div class="stars">${renderStars(rating)}</div>
                             <span>${rating} (${reviewCount} reviews)</span>
                         </div>
-                        <div class="price-display" id="priceDisplay">
-                            From Ksh ${Math.min(...product.sizes.map(s => s.price))}/=
-                        </div>
+                        <div class="price-display" id="priceDisplay">${typeof getProductPriceSummary === 'function' ? getProductPriceSummary(product) : `From Ksh ${Math.min(...product.sizes.map(s => s.price))}/=`}</div>
+                        <p class="size-note">Choose a size below to see the exact price before adding to cart.</p>
                         
                         <div class="size-selector">
                             <label>Select Size:</label>
                             <div class="size-options-detail" id="sizeOptions">
                                 ${product.sizes.map((s, index) => `
                                     <button class="size-btn ${index === 0 ? 'active' : ''}" 
-                                            onclick="selectSizeDetail(${s.price}, this)">
+                                            onclick="selectSizeDetail(${s.price}, '${s.size}', this)">
                                         ${s.size} - Ksh ${s.price}/=
                                     </button>
                                 `).join('')}
@@ -368,11 +415,11 @@
         let selectedPrice = 0;
         let currentSize = '';
         
-        function selectSizeDetail(price, btn) {
+        function selectSizeDetail(price, size, btn) {
             document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             selectedPrice = price;
-            currentSize = btn.textContent.split(' - ')[0];
+            currentSize = size;
             document.getElementById('priceDisplay').textContent = `Ksh ${price}/=`;
         }
         

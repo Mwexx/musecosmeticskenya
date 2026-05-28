@@ -562,7 +562,7 @@ exports.validateProduct = (product) => {
     }
     
     // Category validation
-    const validCategories = ['lotions', 'jelly', 'milking', 'shampoo'];
+    const validCategories = ['lotions', 'glycerin', 'milking'];
     if (!product.category || !validCategories.includes(product.category)) {
         errors.push('Invalid product category');
     }

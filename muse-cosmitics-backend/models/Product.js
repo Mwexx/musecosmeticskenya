@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Please provide a category'],
-        enum: ['lotions', 'jelly', 'milking', 'shampoo']
+        enum: ['lotions', 'glycerin', 'milking']
     },
     price: {
         type: Number,

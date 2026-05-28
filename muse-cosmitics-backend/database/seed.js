@@ -7,150 +7,100 @@ const { connectDB } = require('../config/database');
 
 const products = [
     {
-        name: 'Cocoa Butter Lotion',
-        description: 'Rich and nourishing cocoa butter lotion for deep moisturization',
+        name: 'Carrot Glow Lotion',
+        description: 'A brightening carrot lotion with a soft pink glow for daily skin care.',
         category: 'lotions',
-        price: 100,
+        price: 60,
         stock: 100,
-        image: '/uploads/cocoa-butter-lotion.jpg',
-        ingredients: 'Cocoa Butter, Shea Butter, Vitamin E, Natural Oils',
-        benefits: ['Deep moisturization', 'Improves skin elasticity', 'Reduces stretch marks', 'Natural glow'],
+        image: '/uploads/carrot.jpg',
+        imageBack: '/uploads/corrotlightglycerine.jpg',
+        ingredients: 'Carrot extract, vitamin E, natural oils, moisture lock blend',
+        benefits: ['Brightens the skin', 'Smooth daily moisture', 'Soft pink finish', 'Lightweight absorption'],
+        sizes: [
+            { size: '100ml', price: 60 },
+            { size: '200ml', price: 120 },
+            { size: '400ml', price: 180 }
+        ],
         isFeatured: true
     },
     {
-        name: 'Carrot Light Lotion',
-        description: 'Brightening lotion with carrot extract for even skin tone',
+        name: 'Aloe Vera Calm Lotion',
+        description: 'A soothing aloe vera lotion with a cool blue finish for sensitive skin.',
         category: 'lotions',
-        price: 100,
+        price: 60,
         stock: 100,
-        image: '/uploads/carrot-light-lotion.jpg',
-        ingredients: 'Carrot Extract, Vitamin C, Niacinamide, Natural Oils',
-        benefits: ['Skin brightening', 'Even skin tone', 'Reduces dark spots', 'Hydrates deeply'],
+        image: '/uploads/aloevera.jpg',
+        imageBack: '/uploads/200mlaloevera.jpg',
+        ingredients: 'Aloe vera extract, chamomile, vitamin E, soothing oils',
+        benefits: ['Soothes irritation', 'Calms dry skin', 'Fresh blue look', 'Everyday hydration'],
+        sizes: [
+            { size: '100ml', price: 60 },
+            { size: '200ml', price: 120 },
+            { size: '400ml', price: 180 }
+        ],
         isFeatured: true
     },
     {
-        name: "Men's Lotion",
-        description: 'Specially formulated lotion for men\'s skin care needs',
+        name: 'Muse Collection Lotion',
+        description: 'The signature Muse Collection lotion with an ocean-inspired premium finish.',
         category: 'lotions',
-        price: 100,
+        price: 60,
         stock: 100,
-        image: '/uploads/mens-lotion.jpg',
-        ingredients: 'Aloe Vera, Tea Tree Oil, Vitamin E, Natural Extracts',
-        benefits: ['Non-greasy formula', 'Quick absorption', 'Fresh scent', 'All-day moisture'],
+        image: '/uploads/musecolection.jpg',
+        imageBack: '/uploads/cocobatter.jpg',
+        ingredients: 'Cocoa butter, botanical oils, vitamin E, nourishing minerals',
+        benefits: ['Premium skin feel', 'Elegant ocean tone', 'Rich moisture', 'All-day softness'],
+        sizes: [
+            { size: '100ml', price: 60 },
+            { size: '200ml', price: 120 },
+            { size: '400ml', price: 180 }
+        ],
+        isFeatured: true
+    },
+    {
+        name: 'Carrot Light Glycerin',
+        description: 'A clear, light glycerin blend for smooth skin and a clean finish.',
+        category: 'glycerin',
+        price: 50,
+        stock: 100,
+        image: '/uploads/corrotlightglycerine.jpg',
+        imageBack: '/uploads/carrot.jpg',
+        ingredients: 'Glycerin, carrot extract, vitamin E',
+        benefits: ['Softens rough skin', 'Locks in moisture', 'Lightweight texture', 'Gentle daily care'],
+        sizes: [
+            { size: '50ml', price: 50 }
+        ],
+        isFeatured: true
+    },
+    {
+        name: 'Pure Glycerin',
+        description: 'Pure glycerin in a compact 50ml bottle for simple, effective moisture.',
+        category: 'glycerin',
+        price: 50,
+        stock: 100,
+        image: '/uploads/pureglycerine.jpg',
+        imageBack: '/uploads/corrotlightglycerine.jpg',
+        ingredients: 'Pure glycerin, moisture retention blend',
+        benefits: ['Deep hydration', 'Non-greasy finish', 'Everyday skin support', 'Clean formula'],
+        sizes: [
+            { size: '50ml', price: 50 }
+        ],
         isFeatured: false
     },
     {
-        name: 'Serum',
-        description: 'Intensive serum for targeted skin treatment',
-        category: 'lotions',
-        price: 100,
-        stock: 100,
-        image: '/uploads/serum.jpg',
-        ingredients: 'Hyaluronic Acid, Vitamin C, Peptides, Natural Extracts',
-        benefits: ['Anti-aging', 'Deep hydration', 'Skin repair', 'Brightening'],
-        isFeatured: true
-    },
-    {
-        name: 'Aloe Vera Lotion',
-        description: 'Soothing aloe vera lotion for sensitive skin',
-        category: 'lotions',
-        price: 100,
-        stock: 100,
-        image: '/uploads/aloe-vera-lotion.jpg',
-        ingredients: 'Aloe Vera Extract, Chamomile, Vitamin E, Natural Oils',
-        benefits: ['Soothes irritation', 'Heals sunburn', 'Lightweight', 'Natural healing'],
-        isFeatured: false
-    },
-    {
-        name: 'Cocoa Butter Jelly',
-        description: 'Luxurious cocoa butter jelly for intense moisture',
-        category: 'jelly',
-        price: 200,
-        stock: 50,
-        image: '/uploads/cocoa-butter-jelly.jpg',
-        ingredients: 'Cocoa Butter, Petroleum Jelly, Vitamin E, Natural Fragrance',
-        benefits: ['Long-lasting moisture', 'Protects skin barrier', 'Soft and smooth skin', 'Rich texture'],
-        isFeatured: true
-    },
-    {
-        name: 'Pure Petroleum Jelly',
-        description: '100% pure petroleum jelly for all-purpose skin protection',
-        category: 'jelly',
-        price: 200,
-        stock: 50,
-        image: '/uploads/petroleum-jelly.jpg',
-        ingredients: '100% Pure Petroleum Jelly',
-        benefits: ['Multi-purpose', 'Protects skin', 'Heals dry patches', 'Locks in moisture'],
-        isFeatured: false
-    },
-    {
-        name: 'Scented Milking Jelly',
-        description: 'Fragrant milking jelly for smooth and soft skin',
+        name: 'Milking Jelly',
+        description: 'A soft milking jelly for smooth, protected, and radiant skin.',
         category: 'milking',
-        price: 30,
+        price: 40,
         stock: 150,
-        image: '/uploads/scented-milking-jelly.jpg',
-        ingredients: 'Petroleum Jelly, Natural Fragrance, Vitamin E, Milk Extract',
-        benefits: ['Pleasant fragrance', 'Silky smooth skin', 'Lightweight', 'Long-lasting'],
+        image: '/uploads/milkingjelly.jpg',
+        imageBack: '/uploads/pureglycerine.jpg',
+        ingredients: 'Milk extract, glycerin, vitamin E, softening blend',
+        benefits: ['Smooth texture', 'Locks in moisture', 'Gentle on skin', 'Compact size'],
+        sizes: [
+            { size: '50ml', price: 40 }
+        ],
         isFeatured: false
-    },
-    {
-        name: 'Pure Milking Jelly',
-        description: 'Unscented milking jelly for sensitive skin',
-        category: 'milking',
-        price: 27,
-        stock: 150,
-        image: '/uploads/pure-milking-jelly.jpg',
-        ingredients: 'Petroleum Jelly, Milk Extract, Vitamin E',
-        benefits: ['Fragrance-free', 'Gentle on skin', 'Deep moisture', 'Hypoallergenic'],
-        isFeatured: false
-    },
-    {
-        name: 'Strawberry Shampoo',
-        description: 'Refreshing strawberry scented shampoo for healthy hair',
-        category: 'shampoo',
-        price: 100,
-        stock: 75,
-        image: '/uploads/strawberry-shampoo.jpg',
-        ingredients: 'Strawberry Extract, Natural Oils, Vitamins, Gentle Cleansers',
-        benefits: ['Fresh strawberry scent', 'Cleanses gently', 'Adds shine', 'Strengthens hair'],
-        isFeatured: true
-    },
-    {
-        name: 'Shea Glow Lotion',
-        description: 'Hydrating lotion with shea butter and botanical oils for a soft glow',
-        category: 'lotions',
-        price: 120,
-        stock: 80,
-        image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600',
-        ingredients: 'Shea Butter, Argan Oil, Aloe Vera, Vitamin E',
-        benefits: ['Deep moisture', 'Softens rough skin', 'Non-greasy finish', 'Healthy glow'],
-        isFeatured: true
-    },
-    {
-        name: 'Honey Silk Jelly',
-        description: 'Silky jelly blend with honey extract for long-lasting protection',
-        category: 'jelly',
-        price: 210,
-        stock: 60,
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
-        ingredients: 'Honey Extract, Petroleum Jelly, Vitamin E',
-        benefits: ['Locks moisture', 'Soothes dryness', 'Soft silky finish', 'Gentle fragrance'],
-        isFeatured: false
-    },
-    {
-        name: 'Coconut Repair Shampoo',
-        description: 'Nourishing coconut shampoo designed for damaged and dry hair',
-        category: 'shampoo',
-        price: 150,
-        stock: 70,
-        image: 'https://images.unsplash.com/photo-1527799820374-dcdfb3d8979f?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
-        ingredients: 'Coconut Oil, Keratin, Aloe Vera, Gentle Cleansers',
-        benefits: ['Repairs dry hair', 'Adds shine', 'Strengthens strands', 'Fresh coconut scent'],
-        isFeatured: true
     }
 ];
 

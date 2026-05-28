@@ -1,217 +1,112 @@
 // ===== Products Data =====
 const productsData = [
-    // Lotions
     {
         id: 1,
-        name: 'Cocoa Butter Lotion',
+        name: 'Carrot Glow Lotion',
         category: 'lotions',
-        description: 'Rich and nourishing cocoa butter lotion for deep moisturization',
-        ingredients: 'Cocoa Butter, Shea Butter, Vitamin E, Natural Oils',
-        benefits: ['Deep moisturization', 'Improves skin elasticity', 'Reduces stretch marks', 'Natural glow'],
-        image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
+        theme: 'carrot',
+        description: 'A brightening carrot lotion with a soft pink glow for daily skin care.',
+        ingredients: 'Carrot extract, vitamin E, natural oils, moisture lock blend',
+        benefits: ['Brightens the skin', 'Smooth daily moisture', 'Soft pink finish', 'Lightweight absorption'],
+        image: 'assets/carrot.jpg',
+        imageBack: 'assets/corrotlightglycerine.jpg',
         sizes: [
-            { size: '100ml', price: 50 },
-            { size: '200ml', price: 100 },
-            { size: '400ml', price: 200 }
+            { size: '100ml', price: 60 },
+            { size: '200ml', price: 120 },
+            { size: '400ml', price: 180 }
         ],
-        rating: 4.8,
-        reviews: 124
+        rating: 4.9,
+        reviews: 142,
+        badge: 'Pink Glow'
     },
     {
         id: 2,
-        name: 'Carrot Light Lotion',
+        name: 'Aloe Vera Calm Lotion',
         category: 'lotions',
-        description: 'Brightening lotion with carrot extract for even skin tone',
-        ingredients: 'Carrot Extract, Vitamin C, Niacinamide, Natural Oils',
-        benefits: ['Skin brightening', 'Even skin tone', 'Reduces dark spots', 'Hydrates deeply'],
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+        theme: 'aloe',
+        description: 'A soothing aloe vera lotion with a cool blue finish for sensitive skin.',
+        ingredients: 'Aloe vera extract, chamomile, vitamin E, soothing oils',
+        benefits: ['Soothes irritation', 'Calms dry skin', 'Fresh blue look', 'Everyday hydration'],
+        image: 'assets/aloevera.jpg',
+        imageBack: 'assets/200mlaloevera.jpg',
         sizes: [
-            { size: '100ml', price: 50 },
-            { size: '200ml', price: 100 },
-            { size: '400ml', price: 200 }
+            { size: '100ml', price: 60 },
+            { size: '200ml', price: 120 },
+            { size: '400ml', price: 180 }
         ],
-        rating: 4.7,
-        reviews: 98
+        rating: 4.8,
+        reviews: 126,
+        badge: 'Blue Care'
     },
     {
         id: 3,
-        name: "Men's Lotion",
+        name: 'Muse Collection Lotion',
         category: 'lotions',
-        description: 'Specially formulated lotion for men\'s skin care needs',
-        ingredients: 'Aloe Vera, Tea Tree Oil, Vitamin E, Natural Extracts',
-        benefits: ['Non-greasy formula', 'Quick absorption', 'Fresh scent', 'All-day moisture'],
-        image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+        theme: 'ocean',
+        description: 'The signature Muse Collection lotion with an ocean-inspired premium finish.',
+        ingredients: 'Cocoa butter, botanical oils, vitamin E, nourishing minerals',
+        benefits: ['Premium skin feel', 'Elegant ocean tone', 'Rich moisture', 'All-day softness'],
+        image: 'assets/musecolection.jpg',
+        imageBack: 'assets/cocobatter.jpg',
         sizes: [
-            { size: '100ml', price: 50 },
-            { size: '200ml', price: 100 },
-            { size: '400ml', price: 200 }
+            { size: '100ml', price: 60 },
+            { size: '200ml', price: 120 },
+            { size: '400ml', price: 180 }
         ],
-        rating: 4.6,
-        reviews: 76
+        rating: 4.9,
+        reviews: 88,
+        badge: 'Ocean Luxe'
     },
     {
         id: 4,
-        name: 'Serum',
-        category: 'lotions',
-        description: 'Intensive serum for targeted skin treatment',
-        ingredients: 'Hyaluronic Acid, Vitamin C, Peptides, Natural Extracts',
-        benefits: ['Anti-aging', 'Deep hydration', 'Skin repair', 'Brightening'],
-        image: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
+        name: 'Carrot Light Glycerin',
+        category: 'glycerin',
+        theme: 'carrot',
+        description: 'A clear, light glycerin blend for smooth skin and a clean finish.',
+        ingredients: 'Glycerin, carrot extract, vitamin E',
+        benefits: ['Softens rough skin', 'Locks in moisture', 'Lightweight texture', 'Gentle daily care'],
+        image: 'assets/corrotlightglycerine.jpg',
+        imageBack: 'assets/carrot.jpg',
         sizes: [
-            { size: '100ml', price: 50 },
-            { size: '200ml', price: 100 },
-            { size: '400ml', price: 200 }
+            { size: '50ml', price: 50 }
         ],
-        rating: 4.9,
-        reviews: 156
+        rating: 4.7,
+        reviews: 61,
+        badge: 'Light Glycerin'
     },
     {
         id: 5,
-        name: 'Aloe Vera Lotion',
-        category: 'lotions',
-        description: 'Soothing aloe vera lotion for sensitive skin',
-        ingredients: 'Aloe Vera Extract, Chamomile, Vitamin E, Natural Oils',
-        benefits: ['Soothes irritation', 'Heals sunburn', 'Lightweight', 'Natural healing'],
-        image: 'https://images.unsplash.com/photo-1556228578-8d88d7c1e49f?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600',
+        name: 'Pure Glycerin',
+        category: 'glycerin',
+        theme: 'glycerin',
+        description: 'Pure glycerin in a compact 50ml bottle for simple, effective moisture.',
+        ingredients: 'Pure glycerin, moisture retention blend',
+        benefits: ['Deep hydration', 'Non-greasy finish', 'Everyday skin support', 'Clean formula'],
+        image: 'assets/pureglycerine.jpg',
+        imageBack: 'assets/corrotlightglycerine.jpg',
         sizes: [
-            { size: '100ml', price: 50 },
-            { size: '200ml', price: 100 },
-            { size: '400ml', price: 200 }
+            { size: '50ml', price: 50 }
         ],
-        rating: 4.7,
-        reviews: 112
+        rating: 4.8,
+        reviews: 79,
+        badge: 'Pure Care'
     },
-    
-    // Jelly Products
     {
         id: 6,
-        name: 'Cocoa Butter Jelly',
-        category: 'jelly',
-        description: 'Luxurious cocoa butter jelly for intense moisture',
-        ingredients: 'Cocoa Butter, Petroleum Jelly, Vitamin E, Natural Fragrance',
-        benefits: ['Long-lasting moisture', 'Protects skin barrier', 'Soft and smooth skin', 'Rich texture'],
-        image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
-        sizes: [
-            { size: '200ml', price: 200 }
-        ],
-        rating: 4.8,
-        reviews: 89
-    },
-    {
-        id: 7,
-        name: 'Pure Petroleum Jelly',
-        category: 'jelly',
-        description: '100% pure petroleum jelly for all-purpose skin protection',
-        ingredients: '100% Pure Petroleum Jelly',
-        benefits: ['Multi-purpose', 'Protects skin', 'Heals dry patches', 'Locks in moisture'],
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
-        sizes: [
-            { size: '200ml', price: 200 }
-        ],
-        rating: 4.9,
-        reviews: 203
-    },
-    
-    // Milking Jelly
-    {
-        id: 8,
-        name: 'Scented Milking Jelly',
+        name: 'Milking Jelly',
         category: 'milking',
-        description: 'Fragrant milking jelly for smooth and soft skin',
-        ingredients: 'Petroleum Jelly, Natural Fragrance, Vitamin E, Milk Extract',
-        benefits: ['Pleasant fragrance', 'Silky smooth skin', 'Lightweight', 'Long-lasting'],
-        image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
+        theme: 'milking',
+        description: 'A soft milking jelly for smooth, protected, and radiant skin.',
+        ingredients: 'Milk extract, glycerin, vitamin E, softening blend',
+        benefits: ['Smooth texture', 'Locks in moisture', 'Gentle on skin', 'Compact size'],
+        image: 'assets/milkingjelly.jpg',
+        imageBack: 'assets/pureglycerine.jpg',
         sizes: [
-            { size: '50ml', price: 30 }
+            { size: '50ml', price: 40 }
         ],
         rating: 4.6,
-        reviews: 67
-    },
-    {
-        id: 9,
-        name: 'Pure Milking Jelly',
-        category: 'milking',
-        description: 'Unscented milking jelly for sensitive skin',
-        ingredients: 'Petroleum Jelly, Milk Extract, Vitamin E',
-        benefits: ['Fragrance-free', 'Gentle on skin', 'Deep moisture', 'Hypoallergenic'],
-        image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
-        sizes: [
-            { size: '50ml', price: 27 }
-        ],
-        rating: 4.7,
-        reviews: 54
-    },
-    
-    // Shampoo
-    {
-        id: 10,
-        name: 'Strawberry Shampoo',
-        category: 'shampoo',
-        description: 'Refreshing strawberry scented shampoo for healthy hair',
-        ingredients: 'Strawberry Extract, Natural Oils, Vitamins, Gentle Cleansers',
-        benefits: ['Fresh strawberry scent', 'Cleanses gently', 'Adds shine', 'Strengthens hair'],
-        image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
-        sizes: [
-            { size: '1L', price: 100 }
-        ],
-        rating: 4.5,
-        reviews: 43
-    },
-    {
-        id: 11,
-        name: 'Shea Glow Lotion',
-        category: 'lotions',
-        description: 'Hydrating lotion with shea butter and botanical oils for a soft glow',
-        ingredients: 'Shea Butter, Argan Oil, Aloe Vera, Vitamin E',
-        benefits: ['Deep moisture', 'Softens rough skin', 'Non-greasy finish', 'Healthy glow'],
-        image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600',
-        sizes: [
-            { size: '100ml', price: 120 },
-            { size: '250ml', price: 220 }
-        ],
-        rating: 4.8,
-        reviews: 61
-    },
-    {
-        id: 12,
-        name: 'Honey Silk Jelly',
-        category: 'jelly',
-        description: 'Silky jelly blend with honey extract for long-lasting protection',
-        ingredients: 'Honey Extract, Petroleum Jelly, Vitamin E',
-        benefits: ['Locks moisture', 'Soothes dryness', 'Soft silky finish', 'Gentle fragrance'],
-        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=600',
-        sizes: [
-            { size: '200ml', price: 210 }
-        ],
-        rating: 4.6,
-        reviews: 38
-    },
-    {
-        id: 13,
-        name: 'Coconut Repair Shampoo',
-        category: 'shampoo',
-        description: 'Nourishing coconut shampoo designed for damaged and dry hair',
-        ingredients: 'Coconut Oil, Keratin, Aloe Vera, Gentle Cleansers',
-        benefits: ['Repairs dry hair', 'Adds shine', 'Strengthens strands', 'Fresh coconut scent'],
-        image: 'https://images.unsplash.com/photo-1527799820374-dcdfb3d8979f?w=600',
-        imageBack: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600',
-        sizes: [
-            { size: '1L', price: 150 }
-        ],
-        rating: 4.7,
-        reviews: 49
+        reviews: 54,
+        badge: 'Customer Favorite'
     }
 ];
 
@@ -224,6 +119,7 @@ function normalizeApiProduct(product) {
         id: product.id,
         name: product.name,
         category: product.category,
+        theme: product.theme,
         description: product.description || '',
         ingredients: product.ingredients || '',
         benefits: Array.isArray(product.benefits) ? product.benefits : [],
@@ -233,8 +129,53 @@ function normalizeApiProduct(product) {
             ? product.sizes
             : [{ size: 'Standard', price: product.price || 0 }],
         rating: product.averageRating ?? product.rating ?? 0,
-        reviews: product.reviewCount ?? 0
+        reviews: product.reviewCount ?? 0,
+        badge: product.badge || ''
     };
+}
+
+function getProductThemeClass(product) {
+    const theme = product.theme || product.category || 'neutral';
+    return `theme-${theme}`;
+}
+
+function getProductPriceSummary(product) {
+    if (!Array.isArray(product.sizes) || product.sizes.length === 0) {
+        return 'Price on request';
+    }
+
+    if (product.sizes.length === 1) {
+        const size = product.sizes[0];
+        return `${size.size} Ksh ${size.price}/=`;
+    }
+
+    const lowest = Math.min(...product.sizes.map(size => size.price));
+    const highest = Math.max(...product.sizes.map(size => size.price));
+    return `From Ksh ${lowest}/= to Ksh ${highest}/=`;
+}
+
+function mergeCatalogData(apiProducts = []) {
+    if (!Array.isArray(apiProducts) || apiProducts.length === 0) {
+        return [...productsData];
+    }
+
+    return productsData.map(localProduct => {
+        const remoteProduct = apiProducts.find(apiProduct => apiProduct.name?.trim().toLowerCase() === localProduct.name.trim().toLowerCase());
+
+        if (!remoteProduct) {
+            return { ...localProduct };
+        }
+
+        return {
+            ...localProduct,
+            ...remoteProduct,
+            image: localProduct.image,
+            imageBack: localProduct.imageBack,
+            sizes: localProduct.sizes,
+            theme: localProduct.theme,
+            badge: localProduct.badge
+        };
+    });
 }
 
 function getCatalogProducts() {
@@ -251,7 +192,7 @@ async function loadProductsFromApi() {
         const result = await response.json().catch(() => null);
 
         if (response.ok && result?.success && Array.isArray(result.data) && result.data.length > 0) {
-            return result.data.map(normalizeApiProduct);
+            return mergeCatalogData(result.data.map(normalizeApiProduct));
         }
     } catch (error) {
         console.warn('Falling back to local product data:', error);
@@ -289,28 +230,33 @@ function renderProducts(products, containerId = 'productsGrid') {
     }
     
     container.innerHTML = products.map(product => `
-        <div class="product-card" data-id="${product.id}">
-            <div class="product-image" onclick="viewProduct(${product.id})">
-                <img src="${product.image}" alt="${product.name}">
+        <article class="product-card ${getProductThemeClass(product)}" data-id="${product.id}">
+            <div class="product-image" role="button" tabindex="0" onclick="viewProduct(${product.id})" onkeydown="if(event.key==='Enter'||event.key===' '){viewProduct(${product.id})}">
+                <img src="${product.image}" alt="${product.name}" loading="lazy">
                 <div class="product-overlay">
-                    <button class="btn-quick-view">Quick View</button>
+                    ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                    <div class="overlay-copy">
+                        <strong>Tap to view</strong>
+                        <span>Add to cart from product details</span>
+                    </div>
                 </div>
             </div>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <h3 class="product-name">${product.name}</h3>
+                <p class="product-description-snippet">${product.description}</p>
                 <div class="product-rating">
                     ${renderStars(product.rating)}
                     <span>(${product.reviews})</span>
                 </div>
                 <div class="product-price">
-                    From Ksh ${Math.min(...product.sizes.map(s => s.price))}/=
+                    ${getProductPriceSummary(product)}
                 </div>
                 <button class="btn-add-cart" onclick="showSizeOptions(${product.id})">
                     <i class="fas fa-cart-plus"></i> Add to Cart
                 </button>
             </div>
-        </div>
+        </article>
     `).join('');
 }
 
@@ -350,7 +296,7 @@ function showSizeOptions(productId) {
     modal.innerHTML = `
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
-            <h3>Select Size - ${product.name}</h3>
+            <h3>Choose a size for ${product.name}</h3>
             <div class="size-options">
                 ${product.sizes.map(s => `
                     <div class="size-option" onclick="selectSize(${product.id}, '${s.size}', ${s.price})">
@@ -437,3 +383,5 @@ window.renderProducts = renderProducts;
 window.loadProductsFromApi = loadProductsFromApi;
 window.getCatalogProducts = getCatalogProducts;
 window.getCatalogProductById = getCatalogProductById;
+window.getProductThemeClass = getProductThemeClass;
+window.getProductPriceSummary = getProductPriceSummary;

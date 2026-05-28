@@ -183,71 +183,48 @@ async function loadFeaturedProducts() {
     if (!container) return;
     
     try {
-        const fallbackProducts = [
-            {
-                id: 1,
-                name: 'Cocoa Butter Lotion',
-                category: 'Lotions',
-                price: 100,
-                size: '200ml',
-                image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400',
-                badge: 'Best Seller'
-            },
-            {
-                id: 2,
-                name: 'Carrot Light Lotion',
-                category: 'Lotions',
-                price: 100,
-                size: '200ml',
-                image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?w=400',
-                badge: 'Popular'
-            },
-            {
-                id: 3,
-                name: 'Cocoa Butter Jelly',
-                category: 'Jelly',
-                price: 200,
-                size: '200ml',
-                image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400',
-                badge: 'New'
-            },
-            {
-                id: 4,
-                name: 'Strawberry Shampoo',
-                category: 'Hair Care',
-                price: 100,
-                size: '1L',
-                image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=400',
-                badge: null
-            }
-        ];
+        const fallbackProducts = typeof window.getCatalogProducts === 'function'
+            ? window.getCatalogProducts().slice(0, 4)
+            : [];
 
-        const response = await fetch(`${API_BASE_URL}/products/featured?limit=4`);
-        const result = await response.json().catch(() => null);
-        const products = response.ok && result?.success && Array.isArray(result.data)
-            ? result.data.map(product => ({
-                id: product.id,
-                name: product.name,
-                category: product.category,
-                price: product.price,
-                size: product.sizes?.[0]?.size || 'Standard',
-                image: product.image,
-                badge: product.isFeatured ? 'Featured' : null
-            }))
-            : fallbackProducts;
+        let products = fallbackProducts;
+
+        if (products.length === 0) {
+            const response = await fetch(`${API_BASE_URL}/products/featured?limit=4`);
+            const result = await response.json().catch(() => null);
+            products = response.ok && result?.success && Array.isArray(result.data)
+                ? result.data.map(product => ({
+                    id: product.id,
+                    name: product.name,
+                    category: product.category,
+                    theme: product.theme || product.category,
+                    price: product.price,
+                    size: product.sizes?.[0]?.size || 'Standard',
+                    image: product.image,
+                    badge: product.isFeatured ? 'Featured' : null
+                }))
+                : [];
+        }
         
         container.innerHTML = products.map(product => `
-            <div class="product-card" data-id="${product.id}">
-                <div class="product-image" onclick="viewProduct(${product.id})" style="cursor:pointer;">
-                    <img src="${product.image}" alt="${product.name}">
-                    ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+            <article class="product-card ${window.getProductThemeClass ? window.getProductThemeClass(product) : ''}" data-id="${product.id}">
+                <div class="product-image" onclick="viewProduct(${product.id})" style="cursor:pointer;" role="button" tabindex="0">
+                    <img src="${product.image}" alt="${product.name}" loading="lazy">
+                    <div class="product-overlay">
+                        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+                        <div class="overlay-copy">
+                            <strong>Tap to explore</strong>
+                            <span>Click then add the right size to cart</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="product-info">
                     <div class="product-category">${product.category}</div>
                     <h3 class="product-name">${product.name}</h3>
-                    <div class="product-price">Ksh ${product.price}/= <small>${product.size}</small></div>
+                    <p class="product-description-snippet">${product.description || 'Premium skincare crafted for everyday use.'}</p>
+                    <div class="product-price">${window.getProductPriceSummary ? window.getProductPriceSummary(product) : `Ksh ${product.price}/=`}</div>
                     <div class="product-actions">
-                        <button class="btn-add-cart" onclick="addToCart(${product.id})">
+                        <button class="btn-add-cart" onclick="showSizeOptions(${product.id})">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
                         <a href="product-details.html?id=${product.id}" class="btn-view">
@@ -255,7 +232,7 @@ async function loadFeaturedProducts() {
                         </a>
                     </div>
                 </div>
-            </div>
+            </article>
         `).join('');
         
     } catch (error) {
