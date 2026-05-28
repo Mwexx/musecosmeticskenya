@@ -1,7 +1,7 @@
 /* ===== Muse Cosmetics - Authentication JavaScript ===== */
 
 // ===== Global Variables =====
-let currentUser = null;
+let authCurrentUser = null;
 let authToken = null;
 const AUTH_API_BASE_URL = getApiBaseUrl();
 
@@ -40,12 +40,12 @@ function checkAuthStatus() {
     
     if (token && user) {
         authToken = token;
-        currentUser = JSON.parse(user);
+        authCurrentUser = JSON.parse(user);
         updateAuthUI(true);
         return true;
     } else {
         authToken = null;
-        currentUser = null;
+        authCurrentUser = null;
         updateAuthUI(false);
         return false;
     }
@@ -59,8 +59,8 @@ function updateAuthUI(isLoggedIn) {
     
     authLinks.forEach(link => {
         if (isLoggedIn) {
-            const isAdmin = currentUser?.role === 'admin';
-            link.textContent = isAdmin ? 'Admin Dashboard' : (currentUser?.name?.split(' ')[0] || 'Dashboard');
+            const isAdmin = authCurrentUser?.role === 'admin';
+            link.textContent = isAdmin ? 'Admin Dashboard' : (authCurrentUser?.name?.split(' ')[0] || 'Dashboard');
             link.href = isAdmin ? 'admin.html' : 'dashboard.html';
         } else {
             link.textContent = 'Login';
@@ -380,7 +380,7 @@ function logout() {
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
     authToken = null;
-    currentUser = null;
+    authCurrentUser = null;
     
     showNotification('You have been logged out successfully', 'success');
     
@@ -392,7 +392,7 @@ function logout() {
 // ===== Save Authentication Data =====
 function saveAuthData(token, user, remember) {
     authToken = token;
-    currentUser = user;
+    authCurrentUser = user;
     
     if (remember) {
         localStorage.setItem('token', token);
@@ -532,12 +532,12 @@ function formatPhoneNumber(phone) {
 
 // ===== Check if User is Logged In =====
 function isLoggedIn() {
-    return authToken !== null && currentUser !== null;
+    return authToken !== null && authCurrentUser !== null;
 }
 
 // ===== Check if User is Admin =====
 function isAdmin() {
-    return currentUser?.role === 'admin';
+    return authCurrentUser?.role === 'admin';
 }
 
 // ===== Require Authentication (Redirect if not logged in) =====
@@ -706,9 +706,9 @@ async function updateProfile(profileData) {
         const updatedUser = await parseApiResponse(response);
         
         // Update local storage
-        currentUser = { ...currentUser, ...updatedUser.data };
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        sessionStorage.setItem('user', JSON.stringify(currentUser));
+        authCurrentUser = { ...authCurrentUser, ...updatedUser.data };
+        localStorage.setItem('user', JSON.stringify(authCurrentUser));
+        sessionStorage.setItem('user', JSON.stringify(authCurrentUser));
         
         showNotification('Profile updated successfully!', 'success');
         return true;
