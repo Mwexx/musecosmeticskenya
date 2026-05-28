@@ -65,7 +65,7 @@ const productsData = [
         description: 'A clear, light glycerin blend for smooth skin and a clean finish.',
         ingredients: 'Glycerin, carrot extract, vitamin E',
         benefits: ['Softens rough skin', 'Locks in moisture', 'Lightweight texture', 'Gentle daily care'],
-        image: 'assets/corrotlightglycerine.jpg',
+        image: 'assets/carrotlightglycerine.jpg',
         imageBack: 'assets/carrot.jpg',
         sizes: [
             { size: '50ml', price: 50 }
@@ -83,7 +83,7 @@ const productsData = [
         ingredients: 'Pure glycerin, moisture retention blend',
         benefits: ['Deep hydration', 'Non-greasy finish', 'Everyday skin support', 'Clean formula'],
         image: 'assets/pureglycerine.jpg',
-        imageBack: 'assets/corrotlightglycerine.jpg',
+        imageBack: 'assets/carrotlightglycerine.jpg',
         sizes: [
             { size: '50ml', price: 50 }
         ],
@@ -111,8 +111,6 @@ const productsData = [
 ];
 
 let activeProducts = [...productsData];
-const PRODUCTS_CACHE_KEY = 'muse_products_cache_v1';
-const PRODUCTS_CACHE_TTL = 15 * 60 * 1000;
 
 const PRODUCTS_API_BASE_URL = window.API_BASE_URL || ((window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) ? 'http://localhost:5000/api/v1' : '/api/v1');
 
@@ -180,82 +178,6 @@ function mergeCatalogData(apiProducts = []) {
     });
 }
 
-function getCachedProducts() {
-    try {
-        const cached = JSON.parse(localStorage.getItem(PRODUCTS_CACHE_KEY) || 'null');
-
-        if (!cached || !Array.isArray(cached.products) || !cached.timestamp) {
-            return null;
-        }
-
-        if (Date.now() - cached.timestamp > PRODUCTS_CACHE_TTL) {
-            return null;
-        }
-
-        return cached.products;
-    } catch (error) {
-        return null;
-    }
-}
-
-function cacheProducts(products) {
-    try {
-        localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify({
-            timestamp: Date.now(),
-            products
-        }));
-    } catch (error) {
-        // Ignore storage failures.
-    }
-}
-
-async function fetchProductsFromApi() {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-    try {
-        const response = await fetch(`${PRODUCTS_API_BASE_URL}/products?limit=100`, {
-            signal: controller.signal
-        });
-        const result = await response.json().catch(() => null);
-
-        if (response.ok && result?.success && Array.isArray(result.data) && result.data.length > 0) {
-            return mergeCatalogData(result.data.map(normalizeApiProduct));
-        }
-    } catch (error) {
-        console.warn('Falling back to local product data:', error);
-    } finally {
-        clearTimeout(timeoutId);
-    }
-
-    return null;
-}
-
-function refreshCatalogInBackground() {
-    fetchProductsFromApi().then(updatedProducts => {
-        if (!Array.isArray(updatedProducts) || updatedProducts.length === 0) {
-            return;
-        }
-
-        const currentSnapshot = JSON.stringify(activeProducts);
-        const nextSnapshot = JSON.stringify(updatedProducts);
-
-        if (currentSnapshot === nextSnapshot) {
-            return;
-        }
-
-        activeProducts = updatedProducts;
-        window.activeProducts = activeProducts;
-        cacheProducts(updatedProducts);
-
-        if (typeof window.onCatalogProductsUpdated === 'function') {
-            window.onCatalogProductsUpdated(updatedProducts);
-        }
-    }).catch(() => {
-        // Keep cached content visible if the refresh fails.
-    });
-}
-
 function getCatalogProducts() {
     return activeProducts.length > 0 ? activeProducts : productsData;
 }
@@ -266,17 +188,15 @@ function getCatalogProductById(productId) {
 }
 
 async function loadProductsFromApi() {
-    const cachedProducts = getCachedProducts();
+    try {
+        const response = await fetch(`${PRODUCTS_API_BASE_URL}/products?limit=100`);
+        const result = await response.json().catch(() => null);
 
-    if (cachedProducts && cachedProducts.length > 0) {
-        refreshCatalogInBackground();
-        return cachedProducts;
-    }
-
-    const fetchedProducts = await fetchProductsFromApi();
-    if (fetchedProducts && fetchedProducts.length > 0) {
-        cacheProducts(fetchedProducts);
-        return fetchedProducts;
+        if (response.ok && result?.success && Array.isArray(result.data) && result.data.length > 0) {
+            return mergeCatalogData(result.data.map(normalizeApiProduct));
+        }
+    } catch (error) {
+        console.warn('Falling back to local product data:', error);
     }
 
     return productsData;
@@ -414,20 +334,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Products page
     const productsGrid = document.getElementById('productsGrid');
     if (productsGrid) {
-        window.onCatalogProductsUpdated = (updatedProducts) => {
-            if (productsGrid) {
-                renderProducts(updatedProducts);
-            }
-        };
-
-        activeProducts = getCachedProducts() || [...productsData];
+        activeProducts = await loadProductsFromApi();
         window.activeProducts = activeProducts;
         renderProducts(activeProducts);
-        loadProductsFromApi().then(products => {
-            activeProducts = products;
-            window.activeProducts = activeProducts;
-            renderProducts(activeProducts);
-        });
         
         // Filter functionality
         const filterSelect = document.getElementById('categoryFilter');
@@ -451,21 +360,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Product details page
     const productDetailsContainer = document.getElementById('productDetails');
     if (productDetailsContainer) {
-        window.onCatalogProductsUpdated = (updatedProducts) => {
-            activeProducts = updatedProducts;
-            window.activeProducts = activeProducts;
-
-            const refreshedProduct = loadProductDetails(window.currentProductId);
-            if (refreshedProduct) {
-                renderProductDetails(refreshedProduct);
-            }
-        };
-
-        activeProducts = getCachedProducts() || [...productsData];
+        activeProducts = await loadProductsFromApi();
         window.activeProducts = activeProducts;
         const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
-        window.currentProductId = productId;
+        const productId = parseInt(urlParams.get('id'));
         const product = loadProductDetails(productId);
         
         if (product) {
@@ -473,16 +371,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             productDetailsContainer.innerHTML = '<p>Product not found</p>';
         }
-
-        loadProductsFromApi().then(products => {
-            activeProducts = products;
-            window.activeProducts = activeProducts;
-
-            const refreshedProduct = loadProductDetails(productId);
-            if (refreshedProduct) {
-                renderProductDetails(refreshedProduct);
-            }
-        });
     }
 });
 
