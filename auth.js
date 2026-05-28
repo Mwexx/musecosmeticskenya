@@ -618,7 +618,7 @@ async function authFetch(url, options = {}) {
     };
     
     try {
-        const response = await fetch(`${API_BASE_URL}${url}`, mergedOptions);
+        const response = await fetch(`${AUTH_API_BASE_URL}${url}`, mergedOptions);
         
         // Handle 401 Unauthorized
         if (response.status === 401) {
@@ -669,10 +669,10 @@ function socialLogin(provider) {
     
     switch(provider) {
         case 'google':
-            window.location.href = `${API_BASE_URL}/auth/google?redirect=${redirectUrl}`;
+            window.location.href = `${AUTH_API_BASE_URL}/auth/google?redirect=${redirectUrl}`;
             break;
         case 'facebook':
-            window.location.href = `${API_BASE_URL}/auth/facebook?redirect=${redirectUrl}`;
+            window.location.href = `${AUTH_API_BASE_URL}/auth/facebook?redirect=${redirectUrl}`;
             break;
         default:
             showNotification('Social login not available', 'error');
@@ -795,7 +795,7 @@ async function deleteAccount() {
 // ===== Verify Email =====
 async function verifyEmail(token) {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/verify-email?token=${token}`);
+        const response = await fetch(`${AUTH_API_BASE_URL}/auth/verify-email?token=${token}`);
         await parseApiResponse(response);
         showNotification('Email verified successfully!', 'success');
         return true;
