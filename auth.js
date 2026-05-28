@@ -170,7 +170,7 @@ async function handleLogin(e) {
         // Redirect
         setTimeout(() => {
             const redirectUrl = getQueryParam('redirect') || (result.data.user?.role === 'admin' ? 'admin.html' : 'dashboard.html');
-            window.location.href = redirectUrl;
+            window.location.href = resolveAppUrl(redirectUrl);
         }, 1000);
         
     } catch (error) {
@@ -232,7 +232,7 @@ async function handleSignup(e) {
         
         // Redirect to the correct dashboard for immediate access
         setTimeout(() => {
-            window.location.href = result.data.user?.role === 'admin' ? 'admin.html' : 'dashboard.html';
+            window.location.href = resolveAppUrl(result.data.user?.role === 'admin' ? 'admin.html' : 'dashboard.html');
         }, 1500);
         
     } catch (error) {
@@ -328,7 +328,7 @@ async function handleResetPassword(e) {
         showNotification('Password reset successfully!', 'success');
         
         setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = resolveAppUrl('login.html');
         }, 1500);
         
     } catch (error) {
@@ -356,7 +356,7 @@ function logout() {
     showNotification('You have been logged out successfully', 'success');
     
     setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = resolveAppUrl('index.html');
     }, 1000);
 }
 
@@ -515,7 +515,9 @@ function isAdmin() {
 function requireAuth(redirectUrl = 'login.html') {
     if (!isLoggedIn()) {
         const currentUrl = encodeURIComponent(window.location.href);
-        window.location.href = `${redirectUrl}?redirect=${currentUrl}`;
+        const targetUrl = new URL(resolveAppUrl(redirectUrl));
+        targetUrl.searchParams.set('redirect', currentUrl);
+        window.location.href = targetUrl.href;
         return false;
     }
     return true;
@@ -524,13 +526,15 @@ function requireAuth(redirectUrl = 'login.html') {
 // ===== Require Admin Access =====
 function requireAdmin() {
     if (!isLoggedIn()) {
-        window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+        const targetUrl = new URL(resolveAppUrl('login.html'));
+        targetUrl.searchParams.set('redirect', window.location.href);
+        window.location.href = targetUrl.href;
         return false;
     }
     
     if (!isAdmin()) {
         showNotification('Access denied. Admin privileges required.', 'error');
-        window.location.href = 'dashboard.html';
+        window.location.href = resolveAppUrl('dashboard.html');
         return false;
     }
     return true;
@@ -649,7 +653,7 @@ function handleOAuthCallback() {
             
             // Redirect
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                    window.location.href = resolveAppUrl('dashboard.html');
             }, 1000);
         } catch (error) {
             showNotification('Login failed. Please try again.', 'error');
@@ -783,6 +787,14 @@ async function resendVerificationEmail() {
 function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
+}
+
+function resolveAppUrl(path) {
+    try {
+        return new URL(path, window.location.origin).href;
+    } catch (error) {
+        return path;
+    }
 }
 // ===== Show Notification =====
 function showNotification(message, type = 'info') {

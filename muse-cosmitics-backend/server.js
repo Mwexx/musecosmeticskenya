@@ -28,7 +28,7 @@ async function initializeServices() {
         initializationPromise = (async () => {
             await connectDB();
 
-            if (config.EMAIL_USER && config.EMAIL_PASSWORD) {
+            if (!isServerless && config.EMAIL_USER && config.EMAIL_PASSWORD) {
                 await verifyTransporter();
             } else if (config.NODE_ENV === 'development') {
                 console.warn('Email service skipped: credentials are not configured.');
