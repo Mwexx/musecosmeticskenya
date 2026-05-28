@@ -319,7 +319,7 @@
     <script src="cart.js"></script>
     <script src="products.js"></script>
     <script>
-        const API_BASE_URL = window.API_BASE_URL || ((window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) ? 'http://localhost:5000/api/v1' : '/api/v1');
+        const CHECKOUT_API_BASE_URL = window.API_BASE_URL || ((window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) ? 'http://localhost:5000/api/v1' : '/api/v1');
 
         // Load order summary
         function loadOrderSummary() {
@@ -380,7 +380,7 @@
                     return;
                 }
 
-                const response = await fetch(`${API_BASE_URL}/orders`, {
+                const response = await fetch(`${CHECKOUT_API_BASE_URL}/orders`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

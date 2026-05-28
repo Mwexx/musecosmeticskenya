@@ -1,4 +1,4 @@
-const API_BASE_URL = getApiBaseUrl();
+const ADMIN_API_BASE_URL = getApiBaseUrl();
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = getAuthToken();
@@ -54,7 +54,7 @@ async function fetchApi(path, options = {}) {
         headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${ADMIN_API_BASE_URL}${path}`, {
         ...options,
         headers
     });

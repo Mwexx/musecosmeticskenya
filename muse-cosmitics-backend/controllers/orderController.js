@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const Cart = require('../models/Cart');
 const { sendEmail } = require('../config/email');
 const { orderConfirmationTemplate, orderStatusUpdateTemplate } = require('../utils/emailTemplates');
+const { generateOrderNumber } = require('../utils/helpers');
 
 // @desc    Create new order
 // @route   POST /api/v1/orders
@@ -67,6 +68,7 @@ exports.createOrder = async (req, res) => {
         
         // Create order
         const order = await Order.create({
+            orderNumber: generateOrderNumber(),
             user: req.user._id,
             items: orderItems,
             deliveryAddress,

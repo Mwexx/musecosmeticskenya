@@ -1,6 +1,4 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const { connectDB } = require('../config/database');
@@ -107,47 +105,40 @@ const products = [
 async function seedDatabase() {
     try {
         await connectDB();
-        
-        // Clear existing data
+
         await User.deleteMany({});
         await Product.deleteMany({});
         console.log('✅ Existing data cleared');
-        
-        // Create admin user
-        const adminPassword = await bcrypt.hash('Admin@123', 10);
+
         await User.create({
             name: 'Admin',
             email: 'admin@musecosmetics.co.ke',
             phone: '0700000000',
-            password: adminPassword,
+            password: 'Admin@123',
             role: 'admin',
             isVerified: true
         });
         console.log('✅ Admin user created');
-        
-        // Create sample customer
-        const customerPassword = await bcrypt.hash('Customer@123', 10);
+
         await User.create({
             name: 'Test Customer',
             email: 'customer@example.com',
             phone: '0712345678',
-            password: customerPassword,
+            password: 'Customer@123',
             role: 'customer',
             isVerified: true
         });
         console.log('✅ Sample customer created');
-        
-        // Create products
+
         await Product.insertMany(products);
         console.log('✅ Products created');
-        
+
         console.log('\n🎉 Database seeded successfully!');
         console.log('\n📝 Login Credentials:');
         console.log('   Admin: admin@musecosmetics.co.ke / Admin@123');
         console.log('   Customer: customer@example.com / Customer@123');
-        
+
         process.exit(0);
-        
     } catch (error) {
         console.error('❌ Seed error:', error);
         process.exit(1);

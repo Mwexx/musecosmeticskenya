@@ -3,7 +3,7 @@
 // ===== Global Variables =====
 let currentUser = null;
 let authToken = null;
-const API_BASE_URL = getApiBaseUrl();
+const AUTH_API_BASE_URL = getApiBaseUrl();
 
 function getApiBaseUrl() {
     if (window.API_BASE_URL) {
@@ -148,7 +148,7 @@ async function handleLogin(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
         submitBtn.disabled = true;
         
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${AUTH_API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -210,7 +210,7 @@ async function handleSignup(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
         submitBtn.disabled = true;
         
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await fetch(`${AUTH_API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -262,7 +262,7 @@ async function handleForgotPassword(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         submitBtn.disabled = true;
         
-        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        const response = await fetch(`${AUTH_API_BASE_URL}/auth/forgot-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -312,7 +312,7 @@ async function handleResetPassword(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resetting...';
         submitBtn.disabled = true;
         
-        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        const response = await fetch(`${AUTH_API_BASE_URL}/auth/reset-password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

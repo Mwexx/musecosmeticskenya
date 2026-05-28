@@ -1,7 +1,7 @@
 // ===== Global Variables =====
 let currentUser = null;
 let cart = [];
-const API_BASE_URL = getApiBaseUrl();
+const MAIN_API_BASE_URL = getApiBaseUrl();
 
 function getApiBaseUrl() {
     if (window.API_BASE_URL) {
@@ -21,7 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeNavigation();
     initializeCarousel();
     initializeTestimonials();
-    loadCart();
+    if (typeof loadCart === 'function') {
+        loadCart();
+    }
     checkAuthStatus();
     loadFeaturedProducts();
 });
@@ -76,6 +78,7 @@ function initializeNavigation() {
     // Navbar scroll effect
     window.addEventListener('scroll', () => {
         const navbar = document.getElementById('navbar');
+        if (!navbar) return;
         if (window.scrollY > 100) {
             navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
         } else {
@@ -190,7 +193,7 @@ async function loadFeaturedProducts() {
         let products = fallbackProducts;
 
         if (products.length === 0) {
-            const response = await fetch(`${API_BASE_URL}/products/featured?limit=4`);
+            const response = await fetch(`${MAIN_API_BASE_URL}/products/featured?limit=4`);
             const result = await response.json().catch(() => null);
             products = response.ok && result?.success && Array.isArray(result.data)
                 ? result.data.map(product => ({

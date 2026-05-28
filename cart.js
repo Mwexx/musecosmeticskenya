@@ -1,7 +1,15 @@
 // ===== Cart Management =====
-let cart = [];
+let cartItems = [];
 let productCatalog = [];
-const API_BASE_URL = getApiBaseUrl();
+const CART_API_BASE_URL = getApiBaseUrl();
+
+function syncLegacyCartState() {
+    try {
+        cart = cartItems;
+    } catch (error) {
+        // Ignore pages that do not define the legacy cart global.
+    }
+}
 
 function getApiBaseUrl() {
     if (window.API_BASE_URL) {
@@ -19,9 +27,11 @@ function getApiBaseUrl() {
 function loadCart() {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-        cart = JSON.parse(savedCart);
+        cartItems = JSON.parse(savedCart);
         updateCartCount();
     }
+
+    syncLegacyCartState();
 }
 
 function getAuthToken() {
@@ -55,7 +65,7 @@ async function loadProductCatalog() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/products?limit=100`);
+        const response = await fetch(`${CART_API_BASE_URL}/products?limit=100`);
         const result = await response.json().catch(() => ({}));
 
         if (response.ok && result.success && Array.isArray(result.data)) {
@@ -70,7 +80,7 @@ async function loadProductCatalog() {
 }
 
 function resolveProductFromCatalog(productId) {
-    const normalizedId = Number(productId);
+    const normalizedId = String(productId);
 
     if (window.getCatalogProductById) {
         const product = window.getCatalogProductById(normalizedId);
@@ -79,7 +89,7 @@ function resolveProductFromCatalog(productId) {
         }
     }
 
-    const cached = productCatalog.find(product => Number(product.id) === normalizedId);
+    const cached = productCatalog.find(product => String(product.id) === normalizedId);
     return cached || null;
 }
 
@@ -105,7 +115,8 @@ function resolvePrice(product, size, explicitPrice) {
 
 // Save cart to localStorage
 function saveCart() {
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    syncLegacyCartState();
     updateCartCount();
 }
 
@@ -113,7 +124,7 @@ function saveCart() {
 function updateCartCount() {
     const cartCount = document.getElementById('cartCount');
     if (cartCount) {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
         cartCount.textContent = totalItems;
     }
 }
@@ -137,14 +148,14 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
     const selectedSize = size || product.sizes?.[0]?.size || 'Standard';
     const selectedPrice = resolvePrice(product, selectedSize, price);
     
-    const cartItemIndex = cart.findIndex(item => 
-        Number(item.id) === Number(productId) && item.size === selectedSize
+    const cartItemIndex = cartItems.findIndex(item => 
+        String(item.id) === String(productId) && item.size === selectedSize
     );
     
     if (cartItemIndex > -1) {
-        cart[cartItemIndex].quantity += quantity;
+        cartItems[cartItemIndex].quantity += quantity;
     } else {
-        cart.push({
+        cartItems.push({
             id: product.id,
             name: product.name,
             price: selectedPrice,
@@ -171,16 +182,16 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
 
 // Remove item from cart
 function removeFromCart(index) {
-    cart.splice(index, 1);
+    cartItems.splice(index, 1);
     saveCart();
     renderCart();
 }
 
 // Update item quantity
 function updateQuantity(index, change) {
-    cart[index].quantity += change;
+    cartItems[index].quantity += change;
     
-    if (cart[index].quantity <= 0) {
+    if (cartItems[index].quantity <= 0) {
         removeFromCart(index);
     } else {
         saveCart();
@@ -190,12 +201,12 @@ function updateQuantity(index, change) {
 
 // Get cart total
 function getCartTotal() {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
 // Clear cart
 function clearCart() {
-    cart = [];
+    cartItems = [];
     saveCart();
 }
 
@@ -207,7 +218,7 @@ function renderCart() {
     
     if (!cartItemsContainer) return;
     
-    if (cart.length === 0) {
+    if (cartItems.length === 0) {
         cartItemsContainer.innerHTML = '';
         if (cartEmpty) cartEmpty.classList.remove('hidden');
         if (cartTotal) cartTotal.textContent = '0';
@@ -216,7 +227,7 @@ function renderCart() {
     
     if (cartEmpty) cartEmpty.classList.add('hidden');
     
-    cartItemsContainer.innerHTML = cart.map((item, index) => `
+    cartItemsContainer.innerHTML = cartItems.map((item, index) => `
         <div class="cart-item">
             <img src="${item.image}" alt="${item.name}" class="cart-item-image">
             <div class="cart-item-details">
@@ -245,7 +256,7 @@ function renderCart() {
 
 // Checkout function
 async function checkout() {
-    if (cart.length === 0) {
+    if (cartItems.length === 0) {
         showNotification('Your cart is empty', 'error');
         return;
     }
@@ -258,14 +269,14 @@ async function checkout() {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/orders`, {
+        const response = await fetch(`${CART_API_BASE_URL}/orders`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-                items: cart.map(item => ({
+                items: cartItems.map(item => ({
                     product: item.id,
                     quantity: item.quantity,
                     size: item.size

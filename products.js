@@ -112,7 +112,7 @@ const productsData = [
 
 let activeProducts = [...productsData];
 
-const API_BASE_URL = window.API_BASE_URL || ((window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) ? 'http://localhost:5000/api/v1' : '/api/v1');
+const PRODUCTS_API_BASE_URL = window.API_BASE_URL || ((window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '5000')) ? 'http://localhost:5000/api/v1' : '/api/v1');
 
 function normalizeApiProduct(product) {
     return {
@@ -183,12 +183,13 @@ function getCatalogProducts() {
 }
 
 function getCatalogProductById(productId) {
-    return getCatalogProducts().find(product => Number(product.id) === Number(productId)) || null;
+    const normalizedId = String(productId);
+    return getCatalogProducts().find(product => String(product.id) === normalizedId) || null;
 }
 
 async function loadProductsFromApi() {
     try {
-        const response = await fetch(`${API_BASE_URL}/products?limit=100`);
+        const response = await fetch(`${PRODUCTS_API_BASE_URL}/products?limit=100`);
         const result = await response.json().catch(() => null);
 
         if (response.ok && result?.success && Array.isArray(result.data) && result.data.length > 0) {

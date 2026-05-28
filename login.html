@@ -187,42 +187,5 @@
 
     <script src="main.js"></script>
     <script src="auth.js"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const remember = document.getElementById('remember').checked;
-            
-            try {
-                // In production: const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
-                
-                // Mock successful login
-                const mockUser = {
-                    id: 1,
-                    name: 'Test User',
-                    email: email,
-                    role: 'customer'
-                };
-                
-                localStorage.setItem('token', 'mock-jwt-token');
-                localStorage.setItem('user', JSON.stringify(mockUser));
-                
-                if (remember) {
-                    localStorage.setItem('remember', 'true');
-                }
-                
-                showNotification('Login successful!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-                
-            } catch (error) {
-                showNotification('Invalid credentials. Please try again.', 'error');
-            }
-        });
-        
-    </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { generateOrderNumber } = require('../utils/helpers');
 
 const orderItemSchema = new mongoose.Schema({
     product: {
@@ -17,7 +18,8 @@ const orderSchema = new mongoose.Schema({
     orderNumber: {
         type: String,
         unique: true,
-        required: true
+        required: true,
+        default: generateOrderNumber
     },
     user: {
         type: mongoose.Schema.ObjectId,
