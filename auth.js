@@ -27,6 +27,20 @@ async function parseApiResponse(response) {
     return data;
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 // ===== Initialize Authentication =====
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthStatus();
@@ -148,7 +162,7 @@ async function handleLogin(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
         submitBtn.disabled = true;
         
-        const response = await fetch(`${AUTH_API_BASE_URL}/auth/login`, {
+        const response = await fetchWithTimeout(`${AUTH_API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -220,7 +234,7 @@ async function handleSignup(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
         submitBtn.disabled = true;
         
-        const response = await fetch(`${AUTH_API_BASE_URL}/auth/register`, {
+        const response = await fetchWithTimeout(`${AUTH_API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
