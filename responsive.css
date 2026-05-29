@@ -224,3 +224,29 @@
         transform: none;
     }
 }
+
+/* ===== Global image and touch optimizations ===== */
+img { max-width: 100%; height: auto; display: block; }
+
+/* Larger touch targets and reduced visual weight on small screens */
+@media screen and (max-width: 480px) {
+    .btn, .size-btn, .qty-btn { padding: 14px 18px; min-height: 48px; font-size: 1rem; }
+    .nav-menu a { padding: 14px 8px; }
+    .hamburger { width: 48px; height: 48px; align-items: center; justify-content: center; }
+
+    /* Reduce heavy shadows and animations for battery/perf savings */
+    .product-image, .product-image-shell, .feature-card, .main-image {
+        box-shadow: none !important;
+    }
+
+    /* Make main images slightly smaller for faster paint and less layout shift */
+    .main-image { max-height: 360px; height: auto; object-fit: contain; }
+
+    /* Ensure product grid is single column with comfortable spacing */
+    .products-grid { grid-template-columns: 1fr; gap: 18px; }
+
+    /* Avoid large transforms on mobile */
+    .main-image:hover { transform: none; }
+}
+
+/* Prefetch/Preload hint: recommend inlining a critical font or preloading main font in production build. */

@@ -330,7 +330,7 @@
                 <div class="product-detail-grid">
                     <div class="product-images">
                         <div class="product-image-shell ${themeClass}">
-                            <img src="${product.image}" alt="${product.name}" class="main-image" id="mainImage">
+                            <img src="${product.image}" alt="${product.name}" class="main-image" id="mainImage" loading="lazy" decoding="async">
                             <div class="image-hint">
                                 <i class="fas fa-sync-alt"></i> Click to rotate
                             </div>
@@ -385,7 +385,7 @@
                                 <input type="number" class="qty-input" value="1" min="1" id="quantity" readonly>
                                 <button class="qty-btn" onclick="changeQuantity(1)">+</button>
                             </div>
-                            <button class="btn btn-primary btn-add-cart-large" onclick="addToCartFromDetail(${product.id})">
+                            <button class="btn btn-primary btn-add-cart-large" onclick="addToCartFromDetail(${product.apiId || product.id})">
                                 <i class="fas fa-cart-plus"></i> Add to Cart
                             </button>
                         </div>
