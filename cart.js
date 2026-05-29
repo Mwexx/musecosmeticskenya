@@ -76,14 +76,6 @@ function normalizeStoredCartItem(item) {
 }
 
 async function loadProductCatalog() {
-    if (window.getCatalogProducts) {
-        const sharedCatalog = window.getCatalogProducts();
-        if (Array.isArray(sharedCatalog) && sharedCatalog.length > 0) {
-            productCatalog = sharedCatalog.map(normalizeCatalogProduct);
-            return productCatalog;
-        }
-    }
-
     try {
         const response = await fetch(`${CART_API_BASE_URL}/products?limit=100`);
         const result = await response.json().catch(() => ({}));
@@ -94,6 +86,14 @@ async function loadProductCatalog() {
         }
     } catch (error) {
         console.warn('Unable to load product catalog:', error);
+    }
+
+    if (window.getCatalogProducts) {
+        const sharedCatalog = window.getCatalogProducts();
+        if (Array.isArray(sharedCatalog) && sharedCatalog.length > 0) {
+            productCatalog = sharedCatalog.map(normalizeCatalogProduct);
+            return productCatalog;
+        }
     }
 
     return productCatalog;
@@ -131,7 +131,7 @@ async function backfillCartProductIds() {
 
         if (catalogMatch) {
             const mongoProductId = catalogMatch.apiId || catalogMatch.id;
-            if (mongoProductId && (!isMongoObjectId(normalized.productId) || normalized.productId !== mongoProductId)) {
+            if (mongoProductId && normalized.productId !== mongoProductId) {
                 normalized.productId = mongoProductId;
                 changed = true;
             }

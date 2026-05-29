@@ -358,9 +358,16 @@
                 showNotification('Invalid promo code', 'error');
             }
         }
+
+        function getStoredAuthToken() {
+            return localStorage.getItem('token')
+                || localStorage.getItem('authToken')
+                || sessionStorage.getItem('token')
+                || sessionStorage.getItem('authToken');
+        }
         
         function proceedToCheckout() {
-            const token = localStorage.getItem('token');
+            const token = getStoredAuthToken();
             if (!token) {
                 showNotification('Please login to checkout', 'error');
                 setTimeout(() => {

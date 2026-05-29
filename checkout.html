@@ -326,6 +326,10 @@
             const container = document.getElementById('orderSummaryItems');
             const totalElement = document.getElementById('orderTotal');
 
+            if (typeof loadCart === 'function') {
+                loadCart();
+            }
+
             if (typeof ensureCartProductIds === 'function') {
                 await ensureCartProductIds();
             }
