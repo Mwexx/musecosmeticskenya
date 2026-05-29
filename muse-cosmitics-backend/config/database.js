@@ -16,7 +16,12 @@ async function connectDB() {
         return true;
     } catch (error) {
         console.error('❌ MongoDB connection failed:', error.message);
-        process.exit(1);
+        // In development, do not exit the process. Allow server to start so
+        // frontend/static pages can be tested even when the DB is not reachable.
+        if (process.env.NODE_ENV === 'production') {
+            process.exit(1);
+        }
+        return false;
     }
 }
 

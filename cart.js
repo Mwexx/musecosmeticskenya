@@ -27,11 +27,12 @@ function getApiBaseUrl() {
 function loadCart() {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-        cartItems = JSON.parse(savedCart);
+        cartItems = JSON.parse(savedCart).map(item => normalizeStoredCartItem(item));
         updateCartCount();
     }
 
     syncLegacyCartState();
+    backfillCartProductIds();
 }
 
 function getAuthToken() {
@@ -54,6 +55,24 @@ function normalizeCatalogProduct(product) {
             : [{ size: 'Standard', price: product.price || 0 }],
         price: product.price || 0
     };
+}
+
+function isMongoObjectId(value) {
+    return typeof value === 'string' && /^[a-f\d]{24}$/i.test(value);
+}
+
+function normalizeStoredCartItem(item) {
+    const normalized = { ...item };
+
+    if (!normalized.id && normalized.productId) {
+        normalized.id = normalized.productId;
+    }
+
+    if (!normalized.productId) {
+        normalized.productId = normalized.apiId || normalized.mongoId || normalized.id || null;
+    }
+
+    return normalized;
 }
 
 async function loadProductCatalog() {
@@ -92,6 +111,45 @@ function resolveProductFromCatalog(productId) {
 
     const cached = productCatalog.find(product => String(product.id) === normalizedId);
     return cached || null;
+}
+
+async function backfillCartProductIds() {
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+        return;
+    }
+
+    const catalog = await loadProductCatalog();
+    let changed = false;
+
+    cartItems = cartItems.map(item => {
+        const normalized = normalizeStoredCartItem(item);
+        const catalogMatch = catalog.find(product =>
+            String(product.id) === String(normalized.id) ||
+            String(product.apiId || '') === String(normalized.id) ||
+            (normalized.name && product.name && product.name.trim().toLowerCase() === normalized.name.trim().toLowerCase())
+        );
+
+        if (catalogMatch) {
+            const mongoProductId = catalogMatch.apiId || catalogMatch.id;
+            if (mongoProductId && (!isMongoObjectId(normalized.productId) || normalized.productId !== mongoProductId)) {
+                normalized.productId = mongoProductId;
+                changed = true;
+            }
+
+            if (!normalized.id) {
+                normalized.id = catalogMatch.id;
+                changed = true;
+            }
+        }
+
+        return normalized;
+    });
+
+    if (changed) {
+        saveCart();
+    } else {
+        syncLegacyCartState();
+    }
 }
 
 function resolvePrice(product, size, explicitPrice) {
@@ -321,3 +379,4 @@ window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
 window.checkout = checkout;
 window.getCartTotal = getCartTotal;
+window.ensureCartProductIds = backfillCartProductIds;
