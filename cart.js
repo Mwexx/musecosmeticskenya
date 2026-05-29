@@ -40,7 +40,8 @@ function getAuthToken() {
 
 function normalizeCatalogProduct(product) {
     return {
-        id: product.id,
+        id: product.id ?? product._id,
+        apiId: product._id || product.apiId || product.id || null,
         name: product.name,
         category: product.category,
         description: product.description || '',
@@ -149,7 +150,7 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
     const selectedPrice = resolvePrice(product, selectedSize, price);
     
     const cartItemIndex = cartItems.findIndex(item => 
-        String(item.id) === String(productId) && item.size === selectedSize
+        String(item.productId || item.id) === String(product.apiId || product.id) && item.size === selectedSize
     );
     
     if (cartItemIndex > -1) {
@@ -157,6 +158,7 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
     } else {
         cartItems.push({
             id: product.id,
+            productId: product.apiId || product.id,
             name: product.name,
             price: selectedPrice,
             size: selectedSize,
@@ -277,9 +279,11 @@ async function checkout() {
             },
             body: JSON.stringify({
                 items: cartItems.map(item => ({
-                    product: item.id,
+                    product: item.productId || item.id,
+                    name: item.name,
                     quantity: item.quantity,
-                    size: item.size
+                    size: item.size,
+                    price: item.price
                 })),
                 deliveryAddress: document.getElementById('deliveryAddress')?.value || '',
                 town: document.getElementById('town')?.value || 'Nakuru',

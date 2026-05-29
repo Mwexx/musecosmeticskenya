@@ -302,7 +302,8 @@
                 : [{ size: 'Standard', price: product.price || 0 }];
 
             return {
-                id: product.id,
+                id: product.id ?? product._id,
+                apiId: product._id || product.apiId || product.id || null,
                 name: product.name,
                 category: product.category,
                 description: product.description || '',
@@ -440,7 +441,11 @@
         
         function loadRelatedProducts(category, currentId) {
             const catalog = typeof getCatalogProducts === 'function' ? getCatalogProducts() : productsData;
-            const related = catalog.filter(p => p.category === category && p.id !== currentId).slice(0, 4);
+            const related = catalog.filter(p => 
+                p.category === category &&
+                String(p.id) !== String(currentId) &&
+                String(p.apiId || '') !== String(currentId)
+            ).slice(0, 4);
             renderProducts(related, 'relatedProducts');
         }
         
@@ -498,28 +503,31 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const productId = parseInt(urlParams.get('id'));
-            let product = typeof getCatalogProductById === 'function'
+            const localProduct = typeof getCatalogProductById === 'function'
                 ? getCatalogProductById(productId)
                 : productsData.find(p => p.id === productId);
 
-            try {
-                const response = await fetch(`${DETAILS_API_BASE_URL}/products/${productId}`);
-                const result = await response.json();
-
-                if (response.ok && result.success && result.data) {
-                    product = normalizeProduct(result.data);
-                }
-            } catch (error) {
-                console.warn('Falling back to local product data:', error);
-            }
-            
-            if (product) {
-                renderProductDetails(product);
-                selectedPrice = product.sizes[0]?.price || product.price || 0;
-                currentSize = product.sizes[0]?.size || 'Standard';
+            if (localProduct) {
+                renderProductDetails(localProduct);
+                selectedPrice = localProduct.sizes[0]?.price || localProduct.price || 0;
+                currentSize = localProduct.sizes[0]?.size || 'Standard';
             } else {
                 document.getElementById('productDetails').innerHTML = '<h2>Product not found</h2>';
             }
+
+            fetch(`${DETAILS_API_BASE_URL}/products/${productId}`)
+                .then(response => response.json().then(result => ({ response, result })))
+                .then(({ response, result }) => {
+                    if (response.ok && result.success && result.data) {
+                        const product = normalizeProduct(result.data);
+                        renderProductDetails(product);
+                        selectedPrice = product.sizes[0]?.price || product.price || 0;
+                        currentSize = product.sizes[0]?.size || 'Standard';
+                    }
+                })
+                .catch(error => {
+                    console.warn('Falling back to local product data:', error);
+                });
         });
     </script>
 </body>

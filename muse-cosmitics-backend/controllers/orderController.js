@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
+const mongoose = require('mongoose');
 const { sendEmail } = require('../config/email');
 const { orderConfirmationTemplate, orderStatusUpdateTemplate } = require('../utils/emailTemplates');
 const { generateOrderNumber } = require('../utils/helpers');
@@ -24,12 +25,22 @@ exports.createOrder = async (req, res) => {
         let subtotal = 0;
         
         for (const item of items) {
-            const product = await Product.findById(item.product);
+            let product = null;
+
+            if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
+                product = await Product.findById(item.product);
+            }
+
+            if (!product && item.name) {
+                product = await Product.findOne({
+                    name: new RegExp(`^${item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+                });
+            }
             
             if (!product || !product.isActive) {
                 return res.status(404).json({
                     success: false,
-                    message: `Product ${item.product} not found or inactive.`
+                    message: `Product ${item.name || item.product} not found or inactive.`
                 });
             }
             

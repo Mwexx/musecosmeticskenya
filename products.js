@@ -116,7 +116,8 @@ const PRODUCTS_API_BASE_URL = window.API_BASE_URL || ((window.location.protocol 
 
 function normalizeApiProduct(product) {
     return {
-        id: product.id,
+        id: product.id ?? product._id,
+        apiId: product._id || product.apiId || product.id || null,
         name: product.name,
         category: product.category,
         theme: product.theme,
@@ -169,6 +170,8 @@ function mergeCatalogData(apiProducts = []) {
         return {
             ...localProduct,
             ...remoteProduct,
+            id: localProduct.id,
+            apiId: remoteProduct.apiId || remoteProduct._id || localProduct.apiId || null,
             image: localProduct.image,
             imageBack: localProduct.imageBack,
             sizes: localProduct.sizes,
@@ -184,7 +187,7 @@ function getCatalogProducts() {
 
 function getCatalogProductById(productId) {
     const normalizedId = String(productId);
-    return getCatalogProducts().find(product => String(product.id) === normalizedId) || null;
+    return getCatalogProducts().find(product => String(product.id) === normalizedId || String(product.apiId || '') === normalizedId) || null;
 }
 
 async function loadProductsFromApi() {
@@ -334,13 +337,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Products page
     const productsGrid = document.getElementById('productsGrid');
     if (productsGrid) {
-        activeProducts = await loadProductsFromApi();
-        window.activeProducts = activeProducts;
-        renderProducts(activeProducts);
-        
-        // Filter functionality
         const filterSelect = document.getElementById('categoryFilter');
         const searchInput = document.getElementById('searchInput');
+
+        const renderCurrentCatalog = () => {
+            const category = filterSelect?.value || 'all';
+            const searchTerm = searchInput?.value || '';
+            renderProducts(filterProducts(category, searchTerm, activeProducts));
+        };
+
+        renderCurrentCatalog();
+
+        loadProductsFromApi().then((catalog) => {
+            activeProducts = catalog;
+            window.activeProducts = activeProducts;
+            renderCurrentCatalog();
+        });
         
         if (filterSelect) {
             filterSelect.addEventListener('change', (e) => {
@@ -360,17 +372,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Product details page
     const productDetailsContainer = document.getElementById('productDetails');
     if (productDetailsContainer) {
-        activeProducts = await loadProductsFromApi();
-        window.activeProducts = activeProducts;
         const urlParams = new URLSearchParams(window.location.search);
         const productId = parseInt(urlParams.get('id'));
-        const product = loadProductDetails(productId);
+        const localProduct = loadProductDetails(productId);
         
-        if (product) {
-            renderProductDetails(product);
+        if (localProduct) {
+            renderProductDetails(localProduct);
         } else {
             productDetailsContainer.innerHTML = '<p>Product not found</p>';
         }
+
+        loadProductsFromApi().then((catalog) => {
+            activeProducts = catalog;
+            window.activeProducts = activeProducts;
+            const product = loadProductDetails(productId);
+            if (product) {
+                renderProductDetails(product);
+            }
+        });
     }
 });
 
