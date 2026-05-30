@@ -190,14 +190,6 @@ function updateCartCount() {
 
 // Add item to cart
 function addToCart(productId, quantity = 1, size = null, price = null) {
-    // Check if user is logged in
-    const token = getAuthToken();
-    if (!token) {
-        showNotification('Please login to add items to cart', 'error');
-        window.location.href = 'login.html';
-        return;
-    }
-    
     const product = resolveProductFromCatalog(productId);
     if (!product) {
         showNotification('Product not found', 'error');
@@ -228,7 +220,8 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
     }
     
     saveCart();
-    showNotification('Added to cart successfully!', 'success');
+    const token = getAuthToken();
+    showNotification(token ? 'Added to cart successfully!' : 'Added to cart. Login at checkout to place the order.', 'success');
     
     // Animate cart icon
     const cartIcon = document.querySelector('.cart-icon');
