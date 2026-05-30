@@ -172,6 +172,38 @@ function resolvePrice(product, size, explicitPrice) {
     return product.price || 0;
 }
 
+async function syncItemToBackendCart(productId, quantity, size) {
+    const token = getAuthToken();
+    if (!token || !isMongoObjectId(String(productId))) {
+        return false;
+    }
+
+    try {
+        const response = await fetch(`${CART_API_BASE_URL}/cart/items`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                product: String(productId),
+                quantity,
+                size
+            })
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(result.message || 'Failed to sync cart item');
+        }
+
+        return true;
+    } catch (error) {
+        console.warn('Backend cart sync failed:', error);
+        return false;
+    }
+}
+
 // Save cart to localStorage
 function saveCart() {
     localStorage.setItem('cart', JSON.stringify(cartItems));
@@ -222,6 +254,15 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
     saveCart();
     const token = getAuthToken();
     showNotification(token ? 'Added to cart successfully!' : 'Added to cart. Login at checkout to place the order.', 'success');
+
+    if (token) {
+        const backendProductId = product.apiId || product.id;
+        syncItemToBackendCart(backendProductId, quantity, selectedSize).then((synced) => {
+            if (synced && typeof window.loadUserCart === 'function') {
+                window.loadUserCart();
+            }
+        });
+    }
     
     // Animate cart icon
     const cartIcon = document.querySelector('.cart-icon');
