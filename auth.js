@@ -21,7 +21,10 @@ async function parseApiResponse(response) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || data.success === false) {
-        throw new Error(data.message || 'Request failed');
+        const error = new Error(data.message || 'Request failed');
+        error.status = response.status;
+        error.data = data;
+        throw error;
     }
 
     return data;
@@ -53,8 +56,16 @@ function checkAuthStatus() {
     const user = localStorage.getItem('user') || sessionStorage.getItem('user');
     
     if (token && user) {
+        const parsedUser = JSON.parse(user);
+
+        if (isLegacyFallbackSession(token, parsedUser)) {
+            clearLegacyFallbackAuth();
+            updateAuthUI(false);
+            return false;
+        }
+
         authToken = token;
-        authCurrentUser = JSON.parse(user);
+        authCurrentUser = parsedUser;
         updateAuthUI(true);
         return true;
     } else {
@@ -189,7 +200,7 @@ async function handleLogin(e) {
         
     } catch (error) {
         console.error('Login error:', error);
-        if (shouldUseLocalAuthFallback()) {
+        if (shouldUseLocalAuthFallback(error)) {
             const fallbackUser = buildFallbackUser(email);
             saveAuthData(generateFallbackToken(fallbackUser), fallbackUser, true);
             showNotification('Login successful! Welcome back.', 'success');
@@ -261,7 +272,7 @@ async function handleSignup(e) {
         
     } catch (error) {
         console.error('Signup error:', error);
-        if (shouldUseLocalAuthFallback()) {
+        if (shouldUseLocalAuthFallback(error)) {
             const fallbackUser = {
                 id: `local-${Date.now()}`,
                 name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -588,6 +599,24 @@ function getAuthToken() {
     return authToken || localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
 }
 
+function isJwtToken(value) {
+    return typeof value === 'string' && value.split('.').length === 3;
+}
+
+function isLegacyFallbackSession(token, user) {
+    return !isJwtToken(token) && Boolean(user && typeof user.id === 'string' && user.id.startsWith('local-'));
+}
+
+function clearLegacyFallbackAuth() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('remember');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
+}
+
 // ===== Get Auth Headers =====
 function getAuthHeaders() {
     const token = getAuthToken();
@@ -852,8 +881,23 @@ function resolveAppUrl(path) {
     }
 }
 
-function shouldUseLocalAuthFallback() {
-    return window.location.hostname.includes('vercel.app');
+function shouldUseLocalAuthFallback(error = null) {
+    if (!window.location.hostname.includes('vercel.app')) {
+        return false;
+    }
+
+    if (!error) {
+        return false;
+    }
+
+    const message = String(error.message || '');
+    const status = Number(error.status || 0);
+
+    if (status >= 400 && status < 500) {
+        return false;
+    }
+
+    return error.name === 'AbortError' || /failed to fetch|networkerror|load failed|request failed/i.test(message) || status >= 500;
 }
 
 function generateFallbackToken(user) {
@@ -867,30 +911,6 @@ function generateFallbackToken(user) {
 
 function buildFallbackUser(email) {
     const normalizedEmail = String(email || '').toLowerCase();
-
-    if (normalizedEmail === 'admin@musecosmetics.co.ke') {
-        return {
-            id: 'local-admin',
-            name: 'Admin',
-            email: 'admin@musecosmetics.co.ke',
-            phone: '0712345678',
-            role: 'admin',
-            avatar: 'default-avatar.jpg',
-            isVerified: true
-        };
-    }
-
-    if (normalizedEmail === 'customer@example.com') {
-        return {
-            id: 'local-customer',
-            name: 'Test Customer',
-            email: 'customer@example.com',
-            phone: '0712345678',
-            role: 'customer',
-            avatar: 'default-avatar.jpg',
-            isVerified: true
-        };
-    }
 
     const derivedName = normalizedEmail.split('@')[0]
         .replace(/[._-]+/g, ' ')

@@ -159,11 +159,37 @@ function checkAuthStatus() {
     const user = localStorage.getItem('user');
     
     if (token && user) {
-        currentUser = JSON.parse(user);
+        const parsedUser = JSON.parse(user);
+
+        if (isLegacyFallbackSession(token, parsedUser)) {
+            clearLegacyFallbackAuth();
+            updateAuthUI(false);
+            return;
+        }
+
+        currentUser = parsedUser;
         updateAuthUI(true);
     } else {
         updateAuthUI(false);
     }
+}
+
+function isJwtToken(value) {
+    return typeof value === 'string' && value.split('.').length === 3;
+}
+
+function isLegacyFallbackSession(token, user) {
+    return !isJwtToken(token) && Boolean(user && typeof user.id === 'string' && user.id.startsWith('local-'));
+}
+
+function clearLegacyFallbackAuth() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('remember');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
 }
 
 function updateAuthUI(isLoggedIn) {

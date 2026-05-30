@@ -61,6 +61,10 @@ function isMongoObjectId(value) {
     return typeof value === 'string' && /^[a-f\d]{24}$/i.test(value);
 }
 
+function isJwtToken(value) {
+    return typeof value === 'string' && value.split('.').length === 3;
+}
+
 function normalizeStoredCartItem(item) {
     const normalized = { ...item };
 
@@ -174,7 +178,7 @@ function resolvePrice(product, size, explicitPrice) {
 
 async function syncItemToBackendCart(productId, quantity, size) {
     const token = getAuthToken();
-    if (!token || !isMongoObjectId(String(productId))) {
+    if (!token || !isJwtToken(token) || !isMongoObjectId(String(productId))) {
         return false;
     }
 
