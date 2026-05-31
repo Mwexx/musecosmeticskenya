@@ -469,7 +469,7 @@ exports.forgotPassword = async (req, res) => {
         await user.save({ validateBeforeSave: false });
         
         // Create reset URL
-        const resetUrl = `${config.FRONTEND_URL}/reset-password?token=${resetToken}`;
+        const resetUrl = `${config.FRONTEND_URL}/reset-password.html?token=${resetToken}`;
         
         // Send reset email
         try {
