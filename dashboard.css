@@ -249,6 +249,12 @@
     transition: var(--transition);
 }
 
+.action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    filter: grayscale(0.2);
+}
+
 .btn-view { background: var(--accent-color); color: var(--dark-color); }
 .btn-edit { background: var(--primary-color); color: var(--white); }
 .btn-delete { background: #dc3545; color: var(--white); }

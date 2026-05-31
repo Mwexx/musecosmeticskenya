@@ -1,6 +1,7 @@
 const ADMIN_API_BASE_URL = getApiBaseUrl();
 let editingProductId = null;
 let loadedProducts = [];
+let activeEditButton = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = getAuthToken();
@@ -142,9 +143,20 @@ async function handleAddProduct(e) {
         return;
     }
 
+    if (editingProductId) {
+        const confirmUpdate = window.confirm('Save changes to this product?');
+        if (!confirmUpdate) {
+            return;
+        }
+    }
+
     try {
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        if (editingProductId && activeEditButton) {
+            setRowActionLoading(activeEditButton, true, '<i class="fas fa-spinner fa-spin"></i>');
+        }
 
         const formData = new FormData();
         formData.append('name', name);
@@ -171,7 +183,12 @@ async function handleAddProduct(e) {
         showNotification(error.message || 'Failed to save product.', 'error');
     } finally {
         submitButton.disabled = false;
-        submitButton.innerHTML = '<i class="fas fa-plus"></i> Save Product';
+        submitButton.innerHTML = editingProductId ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-plus"></i> Save Product';
+
+        if (activeEditButton) {
+            setRowActionLoading(activeEditButton, false);
+            activeEditButton = null;
+        }
     }
 }
 
@@ -225,14 +242,14 @@ function renderProducts(container, products) {
 
     container.innerHTML = products.map(product => `
         <tr>
-            <td><img src="${product.image || 'default-product.jpg'}" class="product-img-thumb" alt="${product.name || 'Product'}"></td>
+            <td><img src="${resolveProductImage(product.image)}" class="product-img-thumb" alt="${product.name || 'Product'}" onerror="this.onerror=null;this.src='${getFallbackProductImage()}';"></td>
             <td>${product.name || ''}</td>
             <td>${product.category || ''}</td>
             <td>Ksh ${Number(product.price || 0).toLocaleString()}</td>
             <td>${product.stock ?? 0}</td>
             <td>
-                <button class="action-btn btn-edit" onclick="openEditProductModal('${product._id || product.id || ''}')"><i class="fas fa-edit"></i></button>
-                <button class="action-btn btn-delete" onclick="deleteProduct('${product._id || product.id || ''}')"><i class="fas fa-trash"></i></button>
+                <button class="action-btn btn-edit" onclick="openEditProductModal('${product._id || product.id || ''}', this)" data-original-icon="<i class='fas fa-edit'></i>"><i class="fas fa-edit"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteProduct('${product._id || product.id || ''}', this)" data-original-icon="<i class='fas fa-trash'></i>"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -303,7 +320,7 @@ function renderCustomers(container, users, orders) {
             <td>${orderCounts[user._id] || 0}</td>
             <td>${new Date(user.createdAt || Date.now()).toISOString().slice(0, 10)}</td>
             <td>
-                <button class="action-btn btn-delete" onclick="deleteCustomer('${user._id || ''}', '${(user.name || 'this customer').replace(/'/g, "\\'")}')"><i class="fas fa-user-times"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteCustomer('${user._id || ''}', '${(user.name || 'this customer').replace(/'/g, "\\'")}', this)" data-original-icon="<i class='fas fa-user-times'></i>"><i class="fas fa-user-times"></i></button>
             </td>
         </tr>
     `).join('');
@@ -337,6 +354,7 @@ function closeProductModal() {
     if (modal) modal.style.display = 'none';
 
     editingProductId = null;
+    activeEditButton = null;
     resetProductForm();
 }
 
@@ -348,7 +366,7 @@ function resetProductForm() {
     if (featured) featured.checked = false;
 }
 
-function openEditProductModal(productId) {
+function openEditProductModal(productId, triggerButton = null) {
     const product = loadedProducts.find(item => String(item._id || item.id) === String(productId));
     if (!product) {
         showNotification('Product details not found.', 'error');
@@ -356,6 +374,7 @@ function openEditProductModal(productId) {
     }
 
     editingProductId = productId;
+    activeEditButton = triggerButton;
 
     const title = document.getElementById('productModalTitle');
     const submitButton = document.querySelector('#addProductForm button[type="submit"]');
@@ -373,13 +392,17 @@ function openEditProductModal(productId) {
     if (modal) modal.style.display = 'block';
 }
 
-async function deleteProduct(productId) {
+async function deleteProduct(productId, triggerButton = null) {
     if (!productId) return;
 
     const confirmed = window.confirm('Delete this product? It will be removed from active catalog.');
     if (!confirmed) return;
 
     try {
+        if (triggerButton) {
+            setRowActionLoading(triggerButton, true, '<i class="fas fa-spinner fa-spin"></i>');
+        }
+
         await fetchApi(`/products/${productId}`, {
             method: 'DELETE'
         });
@@ -388,16 +411,24 @@ async function deleteProduct(productId) {
         await loadAdminData();
     } catch (error) {
         showNotification(error.message || 'Failed to delete product.', 'error');
+    } finally {
+        if (triggerButton) {
+            setRowActionLoading(triggerButton, false);
+        }
     }
 }
 
-async function deleteCustomer(userId, userName = 'this customer') {
+async function deleteCustomer(userId, userName = 'this customer', triggerButton = null) {
     if (!userId) return;
 
     const confirmed = window.confirm(`Delete ${userName}? This action cannot be undone.`);
     if (!confirmed) return;
 
     try {
+        if (triggerButton) {
+            setRowActionLoading(triggerButton, true, '<i class="fas fa-spinner fa-spin"></i>');
+        }
+
         await fetchApi(`/users/${userId}`, {
             method: 'DELETE'
         });
@@ -406,7 +437,73 @@ async function deleteCustomer(userId, userName = 'this customer') {
         await loadAdminData();
     } catch (error) {
         showNotification(error.message || 'Failed to delete customer.', 'error');
+    } finally {
+        if (triggerButton) {
+            setRowActionLoading(triggerButton, false);
+        }
     }
+}
+
+function setRowActionLoading(button, isLoading, loadingContent = '<i class="fas fa-spinner fa-spin"></i>') {
+    if (!button) return;
+
+    const row = button.closest('tr');
+    if (!row) return;
+
+    const actionButtons = row.querySelectorAll('.action-btn');
+    actionButtons.forEach(actionButton => {
+        if (isLoading) {
+            actionButton.disabled = true;
+            actionButton.style.opacity = '0.65';
+            if (!actionButton.dataset.originalIcon) {
+                actionButton.dataset.originalIcon = actionButton.innerHTML;
+            }
+        } else {
+            actionButton.disabled = false;
+            actionButton.style.opacity = '1';
+            if (actionButton.dataset.originalIcon) {
+                actionButton.innerHTML = actionButton.dataset.originalIcon;
+            }
+        }
+    });
+
+    if (isLoading) {
+        button.innerHTML = loadingContent;
+    }
+}
+
+function resolveProductImage(imageValue) {
+    const fallback = getFallbackProductImage();
+    if (!imageValue || typeof imageValue !== 'string') {
+        return fallback;
+    }
+
+    const trimmed = imageValue.trim();
+    if (!trimmed) {
+        return fallback;
+    }
+
+    if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        return trimmed;
+    }
+
+    if (trimmed.startsWith('/')) {
+        return trimmed;
+    }
+
+    if (trimmed.startsWith('assets/')) {
+        return `/${trimmed}`;
+    }
+
+    if (trimmed.startsWith('uploads/')) {
+        return `/${trimmed}`;
+    }
+
+    return `/assets/${trimmed}`;
+}
+
+function getFallbackProductImage() {
+    return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="%23f2ece3"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b5b4a" font-family="Arial" font-size="11">No Image</text></svg>';
 }
 
 window.onclick = function(event) {
