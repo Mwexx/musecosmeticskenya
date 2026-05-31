@@ -330,7 +330,7 @@ async function handleForgotPassword(e) {
         e.target.reset();
         
     } catch (error) {
-        showNotification('Failed to send reset link. Please try again.', 'error');
+        showNotification(error.message || 'Failed to send reset link. Please try again.', 'error');
     } finally {
         const submitBtn = e.target.querySelector('button[type="submit"]');
         submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
@@ -386,7 +386,7 @@ async function handleResetPassword(e) {
         }, 1500);
         
     } catch (error) {
-        showNotification('Failed to reset password. Please try again.', 'error');
+        showNotification(error.message || 'Failed to reset password. Please try again.', 'error');
     } finally {
         const submitBtn = e.target.querySelector('button[type="submit"]');
         submitBtn.innerHTML = '<i class="fas fa-lock"></i> Reset Password';
