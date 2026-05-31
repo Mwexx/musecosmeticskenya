@@ -1,4 +1,6 @@
 const ADMIN_API_BASE_URL = getApiBaseUrl();
+let editingProductId = null;
+let loadedProducts = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = getAuthToken();
@@ -156,12 +158,12 @@ async function handleAddProduct(e) {
             formData.append('image', imageFile);
         }
 
-        await fetchApi('/products', {
-            method: 'POST',
+        await fetchApi(editingProductId ? `/products/${editingProductId}` : '/products', {
+            method: editingProductId ? 'PUT' : 'POST',
             body: formData
         });
 
-        showNotification('Product saved to the database.', 'success');
+        showNotification(editingProductId ? 'Product updated in the database.' : 'Product saved to the database.', 'success');
         e.target.reset();
         closeProductModal();
         await loadAdminData();
@@ -196,7 +198,10 @@ async function loadAdminData() {
         const customerUsers = Array.isArray(users.data) ? users.data.filter(item => item.role !== 'admin') : [];
         document.getElementById('adminNewCustomers').textContent = String(customerUsers.length);
 
-        renderProducts(productsTable, Array.isArray(products.data) ? products.data : []);
+        const allProducts = Array.isArray(products.data) ? products.data : [];
+        loadedProducts = allProducts;
+
+        renderProducts(productsTable, allProducts);
         renderOrders(ordersTable, recentOrdersTable, Array.isArray(orders.data) ? orders.data : []);
         renderCustomers(customersTable, customerUsers, Array.isArray(orders.data) ? orders.data : []);
         renderReviews(reviewsTable);
@@ -226,8 +231,8 @@ function renderProducts(container, products) {
             <td>Ksh ${Number(product.price || 0).toLocaleString()}</td>
             <td>${product.stock ?? 0}</td>
             <td>
-                <button class="action-btn btn-edit"><i class="fas fa-edit"></i></button>
-                <button class="action-btn btn-delete"><i class="fas fa-trash"></i></button>
+                <button class="action-btn btn-edit" onclick="openEditProductModal('${product._id || product.id || ''}')"><i class="fas fa-edit"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteProduct('${product._id || product.id || ''}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -297,6 +302,9 @@ function renderCustomers(container, users, orders) {
             <td>${user.phone || ''}</td>
             <td>${orderCounts[user._id] || 0}</td>
             <td>${new Date(user.createdAt || Date.now()).toISOString().slice(0, 10)}</td>
+            <td>
+                <button class="action-btn btn-delete" onclick="deleteCustomer('${user._id || ''}', '${(user.name || 'this customer').replace(/'/g, "\\'")}')"><i class="fas fa-user-times"></i></button>
+            </td>
         </tr>
     `).join('');
 }
@@ -312,6 +320,14 @@ function renderReviews(container) {
 }
 
 function openProductModal() {
+    editingProductId = null;
+    resetProductForm();
+
+    const title = document.getElementById('productModalTitle');
+    const submitButton = document.querySelector('#addProductForm button[type="submit"]');
+    if (title) title.textContent = 'Add New Product';
+    if (submitButton) submitButton.innerHTML = '<i class="fas fa-plus"></i> Save Product';
+
     const modal = document.getElementById('productModal');
     if (modal) modal.style.display = 'block';
 }
@@ -319,6 +335,78 @@ function openProductModal() {
 function closeProductModal() {
     const modal = document.getElementById('productModal');
     if (modal) modal.style.display = 'none';
+
+    editingProductId = null;
+    resetProductForm();
+}
+
+function resetProductForm() {
+    const form = document.getElementById('addProductForm');
+    if (form) form.reset();
+
+    const featured = document.getElementById('productFeatured');
+    if (featured) featured.checked = false;
+}
+
+function openEditProductModal(productId) {
+    const product = loadedProducts.find(item => String(item._id || item.id) === String(productId));
+    if (!product) {
+        showNotification('Product details not found.', 'error');
+        return;
+    }
+
+    editingProductId = productId;
+
+    const title = document.getElementById('productModalTitle');
+    const submitButton = document.querySelector('#addProductForm button[type="submit"]');
+    if (title) title.textContent = 'Edit Product';
+    if (submitButton) submitButton.innerHTML = '<i class="fas fa-save"></i> Update Product';
+
+    document.getElementById('productName').value = product.name || '';
+    document.getElementById('productCategory').value = product.category || 'lotions';
+    document.getElementById('productDescription').value = product.description || '';
+    document.getElementById('productPrice').value = Number(product.price || 0);
+    document.getElementById('productStock').value = Number(product.stock ?? 0);
+    document.getElementById('productFeatured').checked = Boolean(product.isFeatured);
+
+    const modal = document.getElementById('productModal');
+    if (modal) modal.style.display = 'block';
+}
+
+async function deleteProduct(productId) {
+    if (!productId) return;
+
+    const confirmed = window.confirm('Delete this product? It will be removed from active catalog.');
+    if (!confirmed) return;
+
+    try {
+        await fetchApi(`/products/${productId}`, {
+            method: 'DELETE'
+        });
+
+        showNotification('Product deleted successfully.', 'success');
+        await loadAdminData();
+    } catch (error) {
+        showNotification(error.message || 'Failed to delete product.', 'error');
+    }
+}
+
+async function deleteCustomer(userId, userName = 'this customer') {
+    if (!userId) return;
+
+    const confirmed = window.confirm(`Delete ${userName}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+        await fetchApi(`/users/${userId}`, {
+            method: 'DELETE'
+        });
+
+        showNotification('Customer deleted successfully.', 'success');
+        await loadAdminData();
+    } catch (error) {
+        showNotification(error.message || 'Failed to delete customer.', 'error');
+    }
 }
 
 window.onclick = function(event) {
@@ -341,3 +429,7 @@ function logout() {
     sessionStorage.removeItem('user');
     window.location.href = 'index.html';
 }
+
+window.openEditProductModal = openEditProductModal;
+window.deleteProduct = deleteProduct;
+window.deleteCustomer = deleteCustomer;
