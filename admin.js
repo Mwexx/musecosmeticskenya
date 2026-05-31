@@ -487,6 +487,11 @@ function resolveProductImage(imageValue) {
         return trimmed;
     }
 
+    if (trimmed.startsWith('/uploads/')) {
+        const filename = trimmed.split('/').pop();
+        return filename ? `/assets/${filename}` : fallback;
+    }
+
     if (trimmed.startsWith('/')) {
         return trimmed;
     }
@@ -503,7 +508,8 @@ function resolveProductImage(imageValue) {
 }
 
 function getFallbackProductImage() {
-    return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="%23f2ece3"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b5b4a" font-family="Arial" font-size="11">No Image</text></svg>';
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="#f2ece3"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6b5b4a" font-family="Arial" font-size="11">No Image</text></svg>';
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
 window.onclick = function(event) {
