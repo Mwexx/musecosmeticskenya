@@ -11,6 +11,15 @@ function generateSocialPhone() {
     return `07${randomDigits}`;
 }
 
+function normalizeEmail(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function normalizeLoginIdentifier(value) {
+    const identifier = String(value || '').trim();
+    return identifier.includes('@') ? identifier.toLowerCase() : identifier;
+}
+
 async function createSocialUser(provider, email, name) {
     let phone = generateSocialPhone();
 
@@ -38,9 +47,10 @@ async function createSocialUser(provider, email, name) {
 exports.register = async (req, res) => {
     try {
         const { name, email, phone, password } = req.body;
+        const normalizedEmail = normalizeEmail(email);
         
         // Check if user exists
-        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+        const existingUser = await User.findOne({ $or: [{ email: normalizedEmail }, { phone }] });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -49,7 +59,7 @@ exports.register = async (req, res) => {
         }
         
         // Create user
-        const user = await User.create({ name, email, phone, password });
+        const user = await User.create({ name, email: normalizedEmail, phone, password });
         
         // Create empty cart for user
         await Cart.create({ user: user._id });
@@ -62,7 +72,7 @@ exports.register = async (req, res) => {
         try {
             const verificationUrl = `${config.FRONTEND_URL}/verify-email?token=${verificationToken}`;
             await sendEmail({
-                to: email,
+                to: normalizedEmail,
                 subject: 'Welcome to Muse Cosmetics!',
                 html: welcomeEmailTemplate(name, verificationUrl)
             });
@@ -108,9 +118,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const normalizedEmail = normalizeLoginIdentifier(email);
         
         // Validate email & password
-        if (!email || !password) {
+        if (!normalizedEmail || !password) {
             return res.status(400).json({
                 success: false,
                 message: 'Please provide email and password'
@@ -118,7 +129,7 @@ exports.login = async (req, res) => {
         }
         
         // Check for user (include password for comparison)
-        const user = await User.findOne({ $or: [{ email }, { phone: email }] }).select('+password');
+        const user = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedEmail }] }).select('+password');
         
         if (!user) {
             return res.status(401).json({
@@ -442,8 +453,9 @@ exports.deleteAccount = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
+        const normalizedEmail = normalizeEmail(email);
         
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: normalizedEmail });
         
         if (!user) {
             return res.status(404).json({

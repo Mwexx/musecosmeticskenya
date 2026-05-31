@@ -20,6 +20,11 @@ const loginValidation = [
     validate
 ];
 
+const forgotPasswordValidation = [
+    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+    validate
+];
+
 // Routes
 router.post('/register', registerValidation, authController.register);
 router.post('/login', loginValidation, authController.login);
@@ -30,7 +35,7 @@ router.get('/me', verifyToken, authController.getMe);
 router.put('/profile', verifyToken, authController.updateProfile);
 router.post('/change-password', verifyToken, authController.changePassword);
 router.post('/resend-verification', verifyToken, authController.resendVerificationEmail);
-router.post('/forgot-password', authController.forgotPassword);
+router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
 router.put('/reset-password', authController.resetPassword);
 router.get('/verify-email', authController.verifyEmail);
 router.delete('/delete-account', verifyToken, authController.deleteAccount);
