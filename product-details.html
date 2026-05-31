@@ -502,10 +502,16 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const productId = parseInt(urlParams.get('id'));
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                document.getElementById('productDetails').innerHTML = '<h2>Product not found</h2>';
+                return;
+            }
+
             const localProduct = typeof getCatalogProductById === 'function'
                 ? getCatalogProductById(productId)
-                : productsData.find(p => p.id === productId);
+                : productsData.find(p => String(p.id) === String(productId));
 
             if (localProduct) {
                 renderProductDetails(localProduct);
@@ -515,7 +521,7 @@
                 document.getElementById('productDetails').innerHTML = '<h2>Product not found</h2>';
             }
 
-            fetch(`${DETAILS_API_BASE_URL}/products/${productId}`)
+            fetch(`${DETAILS_API_BASE_URL}/products/${encodeURIComponent(productId)}`)
                 .then(response => response.json().then(result => ({ response, result })))
                 .then(({ response, result }) => {
                     if (response.ok && result.success && result.data) {

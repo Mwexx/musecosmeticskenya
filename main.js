@@ -223,7 +223,7 @@ async function loadFeaturedProducts() {
             const result = await response.json().catch(() => null);
             products = response.ok && result?.success && Array.isArray(result.data)
                 ? result.data.map(product => ({
-                    id: product.id,
+                    id: product.id ?? product._id,
                     name: product.name,
                     category: product.category,
                     theme: product.theme || product.category,
@@ -235,9 +235,11 @@ async function loadFeaturedProducts() {
                 : [];
         }
         
-        container.innerHTML = products.map(product => `
-            <article class="product-card ${window.getProductThemeClass ? window.getProductThemeClass(product) : ''}" data-id="${product.id}">
-                <div class="product-image" onclick="viewProduct(${product.id})" style="cursor:pointer;" role="button" tabindex="0">
+        container.innerHTML = products.map(product => {
+            const safeProductId = JSON.stringify(String(product.id));
+            return `
+            <article class="product-card ${window.getProductThemeClass ? window.getProductThemeClass(product) : ''}" data-id="${String(product.id)}">
+                <div class="product-image" onclick="viewProduct(${safeProductId})" style="cursor:pointer;" role="button" tabindex="0">
                     <img src="${product.image}" alt="${product.name}" loading="lazy">
                     <div class="product-overlay">
                         ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
@@ -253,16 +255,17 @@ async function loadFeaturedProducts() {
                     <p class="product-description-snippet">${product.description || 'Premium skincare crafted for everyday use.'}</p>
                     <div class="product-price">${window.getProductPriceSummary ? window.getProductPriceSummary(product) : `Ksh ${product.price}/=`}</div>
                     <div class="product-actions">
-                        <button class="btn-add-cart" onclick="showSizeOptions(${product.id})">
+                        <button class="btn-add-cart" onclick="showSizeOptions(${safeProductId})">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
-                        <a href="product-details.html?id=${product.id}" class="btn-view">
+                        <a href="product-details.html?id=${encodeURIComponent(String(product.id))}" class="btn-view">
                             <i class="fas fa-eye"></i>
                         </a>
                     </div>
                 </div>
             </article>
-        `).join('');
+        `;
+        }).join('');
         
     } catch (error) {
         console.error('Error loading products:', error);

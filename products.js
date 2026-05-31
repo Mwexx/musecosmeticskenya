@@ -160,12 +160,19 @@ function mergeCatalogData(apiProducts = []) {
         return [...productsData];
     }
 
-    return productsData.map(localProduct => {
-        const remoteProduct = apiProducts.find(apiProduct => apiProduct.name?.trim().toLowerCase() === localProduct.name.trim().toLowerCase());
+    const matchedApiIndexes = new Set();
+
+    const mergedLocalProducts = productsData.map(localProduct => {
+        const remoteIndex = apiProducts.findIndex(apiProduct =>
+            apiProduct.name?.trim().toLowerCase() === localProduct.name.trim().toLowerCase()
+        );
+        const remoteProduct = remoteIndex >= 0 ? apiProducts[remoteIndex] : null;
 
         if (!remoteProduct) {
             return { ...localProduct };
         }
+
+        matchedApiIndexes.add(remoteIndex);
 
         return {
             ...localProduct,
@@ -179,6 +186,21 @@ function mergeCatalogData(apiProducts = []) {
             badge: localProduct.badge
         };
     });
+
+    const remoteOnlyProducts = apiProducts
+        .filter((_, index) => !matchedApiIndexes.has(index))
+        .map(remoteProduct => {
+            const remoteId = remoteProduct.id ?? remoteProduct.apiId ?? remoteProduct._id;
+            return {
+                ...remoteProduct,
+                id: remoteId,
+                apiId: remoteProduct.apiId || remoteProduct._id || remoteId,
+                theme: remoteProduct.theme || remoteProduct.category || 'neutral',
+                badge: remoteProduct.badge || (remoteProduct.isFeatured ? 'Featured' : '')
+            };
+        });
+
+    return [...mergedLocalProducts, ...remoteOnlyProducts];
 }
 
 function getCatalogProducts() {
@@ -233,9 +255,11 @@ function renderProducts(products, containerId = 'productsGrid') {
         return;
     }
     
-    container.innerHTML = products.map(product => `
-        <article class="product-card ${getProductThemeClass(product)}" data-id="${product.id}">
-            <div class="product-image" role="button" tabindex="0" onclick="viewProduct(${product.id})" onkeydown="if(event.key==='Enter'||event.key===' '){viewProduct(${product.id})}">
+    container.innerHTML = products.map(product => {
+        const safeProductId = JSON.stringify(String(product.id));
+        return `
+        <article class="product-card ${getProductThemeClass(product)}" data-id="${String(product.id)}">
+            <div class="product-image" role="button" tabindex="0" onclick="viewProduct(${safeProductId})" onkeydown="if(event.key==='Enter'||event.key===' '){viewProduct(${safeProductId})}">
                 <img src="${product.image}" alt="${product.name}" loading="lazy">
                 <div class="product-overlay">
                     ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
@@ -256,12 +280,13 @@ function renderProducts(products, containerId = 'productsGrid') {
                 <div class="product-price">
                     ${getProductPriceSummary(product)}
                 </div>
-                <button class="btn-add-cart" onclick="showSizeOptions(${product.id})">
+                <button class="btn-add-cart" onclick="showSizeOptions(${safeProductId})">
                     <i class="fas fa-cart-plus"></i> Add to Cart
                 </button>
             </div>
         </article>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function renderStars(rating) {
@@ -303,7 +328,7 @@ function showSizeOptions(productId) {
             <h3>Choose a size for ${product.name}</h3>
             <div class="size-options">
                 ${product.sizes.map(s => `
-                    <div class="size-option" onclick="selectSize(${product.id}, '${s.size}', ${s.price})">
+                    <div class="size-option" onclick="selectSize(${JSON.stringify(String(product.id))}, ${JSON.stringify(String(s.size))}, ${s.price})">
                         <span>${s.size}</span>
                         <span>Ksh ${s.price}/=</span>
                     </div>
@@ -329,7 +354,7 @@ function closeModal() {
 }
 
 function viewProduct(productId) {
-    window.location.href = `product-details.html?id=${productId}`;
+    window.location.href = `product-details.html?id=${encodeURIComponent(String(productId))}`;
 }
 
 // ===== Initialize Product Pages =====
@@ -373,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const productDetailsContainer = document.getElementById('productDetails');
     if (productDetailsContainer) {
         const urlParams = new URLSearchParams(window.location.search);
-        const productId = parseInt(urlParams.get('id'));
+        const productId = urlParams.get('id');
         const localProduct = loadProductDetails(productId);
         
         if (localProduct) {
