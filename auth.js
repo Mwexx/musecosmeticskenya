@@ -324,10 +324,17 @@ async function handleForgotPassword(e) {
             body: JSON.stringify({ email })
         });
 
-        await parseApiResponse(response);
+        const result = await parseApiResponse(response);
         
-        showNotification('Password reset link sent to your email!', 'success');
-        e.target.reset();
+        if (result.data?.resetUrl && result.data.emailSent === false) {
+            showNotification(result.message || 'Opening password reset page...', 'success');
+            setTimeout(() => {
+                window.location.href = result.data.resetUrl;
+            }, 1200);
+        } else {
+            showNotification(result.message || 'Password reset link sent to your email!', 'success');
+            e.target.reset();
+        }
         
     } catch (error) {
         showNotification(error.message || 'Failed to send reset link. Please try again.', 'error');

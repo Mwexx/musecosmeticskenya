@@ -485,13 +485,13 @@ exports.forgotPassword = async (req, res) => {
             });
         } catch (error) {
             console.error('Email send failed:', error);
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpire = undefined;
-            await user.save({ validateBeforeSave: false });
-            
-            return res.status(500).json({
-                success: false,
-                message: 'Email could not be sent.'
+            return res.json({
+                success: true,
+                message: 'Password reset link generated. Email delivery is unavailable, so the reset page has been opened directly.',
+                data: {
+                    resetUrl,
+                    emailSent: false
+                }
             });
         }
         
