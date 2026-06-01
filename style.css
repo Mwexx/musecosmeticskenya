@@ -632,12 +632,16 @@ ul {
 }
 
 .product-image {
+    display: block;
     position: relative;
     height: 300px;
     overflow: hidden;
     padding: 16px 14px 12px;
     background: linear-gradient(135deg, rgba(212, 165, 116, 0.1), rgba(255, 255, 255, 0.65));
     box-sizing: border-box;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
 }
 
 .product-image img {

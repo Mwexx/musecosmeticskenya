@@ -257,9 +257,10 @@ function renderProducts(products, containerId = 'productsGrid') {
     
     container.innerHTML = products.map(product => {
         const safeProductId = JSON.stringify(String(product.id));
+        const productDetailsUrl = `product-details.html?id=${encodeURIComponent(String(product.id))}`;
         return `
         <article class="product-card ${getProductThemeClass(product)}" data-id="${String(product.id)}">
-            <div class="product-image" role="button" tabindex="0" onclick="viewProduct(${safeProductId})" onkeydown="if(event.key==='Enter'||event.key===' '){viewProduct(${safeProductId})}">
+            <a class="product-image" href="${productDetailsUrl}" aria-label="View details for ${product.name}">
                 <img src="${product.image}" alt="${product.name}" loading="lazy">
                 <div class="product-overlay">
                     ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
@@ -268,7 +269,7 @@ function renderProducts(products, containerId = 'productsGrid') {
                         <span>Add to cart from product details</span>
                     </div>
                 </div>
-            </div>
+            </a>
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <h3 class="product-name">${product.name}</h3>
