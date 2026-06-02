@@ -2,10 +2,13 @@ const DASHBOARD_API_BASE_URL = getApiBaseUrl();
 
 // Check Authentication
 document.addEventListener('DOMContentLoaded', async () => {
-    const token = getAuthToken();
+    if (typeof window.refreshAuthStatus === 'function') {
+        await window.refreshAuthStatus();
+    }
+
     const user = getCurrentUser();
-    
-    if (!token) {
+
+    if (!user) {
         window.location.href = 'login.html';
         return;
     }
@@ -36,15 +39,11 @@ function getApiBaseUrl() {
 }
 
 function getAuthToken() {
-    return localStorage.getItem('token')
-        || localStorage.getItem('authToken')
-        || sessionStorage.getItem('token')
-        || sessionStorage.getItem('authToken');
+    return null;
 }
 
 function getCurrentUser() {
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : {};
+    return typeof window.getCurrentUser === 'function' ? window.getCurrentUser() || {} : {};
 }
 
 function formatCurrency(value) {
@@ -143,15 +142,15 @@ async function loadDashboardData() {
     const cartItems = getCurrentCart();
     renderCartPreview(cartItems);
 
-    const token = getAuthToken();
     let orders = [];
 
     try {
-        const response = await fetch(`${DASHBOARD_API_BASE_URL}/orders/my-orders`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = typeof window.apiFetch === 'function'
+            ? await window.apiFetch(`${DASHBOARD_API_BASE_URL}/orders/my-orders`, { method: 'GET' })
+            : await fetch(`${DASHBOARD_API_BASE_URL}/orders/my-orders`, {
+                method: 'GET',
+                credentials: 'include'
+            });
 
         const result = await response.json().catch(() => ({}));
         if (response.ok && result.success && Array.isArray(result.data)) {

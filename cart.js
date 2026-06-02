@@ -36,7 +36,11 @@ function loadCart() {
 }
 
 function getAuthToken() {
-    return localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+    return null;
+}
+
+function isAuthenticatedUser() {
+    return typeof window.isLoggedIn === 'function' ? window.isLoggedIn() : false;
 }
 
 function normalizeCatalogProduct(product) {
@@ -177,24 +181,32 @@ function resolvePrice(product, size, explicitPrice) {
 }
 
 async function syncItemToBackendCart(productId, quantity, size) {
-    const token = getAuthToken();
-    if (!token || !isJwtToken(token) || !isMongoObjectId(String(productId))) {
+    if (!isAuthenticatedUser() || !isMongoObjectId(String(productId))) {
         return false;
     }
 
     try {
-        const response = await fetch(`${CART_API_BASE_URL}/cart/items`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                product: String(productId),
-                quantity,
-                size
+        const response = await (typeof window.apiFetch === 'function'
+            ? window.apiFetch(`${CART_API_BASE_URL}/cart/items`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    product: String(productId),
+                    quantity,
+                    size
+                })
             })
-        });
+            : fetch(`${CART_API_BASE_URL}/cart/items`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product: String(productId),
+                    quantity,
+                    size
+                })
+            }));
 
         if (!response.ok) {
             const result = await response.json().catch(() => ({}));
@@ -256,10 +268,10 @@ function addToCart(productId, quantity = 1, size = null, price = null) {
     }
     
     saveCart();
-    const token = getAuthToken();
-    showNotification(token ? 'Added to cart successfully!' : 'Added to cart. Login at checkout to place the order.', 'success');
+    const canSyncWithBackend = isAuthenticatedUser();
+    showNotification(canSyncWithBackend ? 'Added to cart successfully!' : 'Added to cart. Login at checkout to place the order.', 'success');
 
-    if (token) {
+    if (canSyncWithBackend) {
         const backendProductId = product.apiId || product.id;
         syncItemToBackendCart(backendProductId, quantity, selectedSize).then((synced) => {
             if (synced && typeof window.loadUserCart === 'function') {
@@ -359,36 +371,42 @@ async function checkout() {
         return;
     }
     
-    const token = getAuthToken();
-    if (!token) {
+    if (!isAuthenticatedUser()) {
         showNotification('Please login to checkout', 'error');
         window.location.href = 'login.html';
         return;
     }
     
     try {
-        const response = await fetch(`${CART_API_BASE_URL}/orders`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                items: cartItems.map(item => ({
-                    product: item.productId || item.id,
-                    name: item.name,
-                    quantity: item.quantity,
-                    size: item.size,
-                    price: item.price
-                })),
-                deliveryAddress: document.getElementById('deliveryAddress')?.value || '',
-                town: document.getElementById('town')?.value || 'Nakuru',
-                county: document.getElementById('county')?.value || 'Nakuru',
-                phone: document.getElementById('phoneNumber')?.value || '',
-                paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'mpesa',
-                deliveryInstructions: document.getElementById('deliveryInstructions')?.value || ''
-            })
+        const requestBody = JSON.stringify({
+            items: cartItems.map(item => ({
+                product: item.productId || item.id,
+                name: item.name,
+                quantity: item.quantity,
+                size: item.size,
+                price: item.price
+            })),
+            deliveryAddress: document.getElementById('deliveryAddress')?.value || '',
+            town: document.getElementById('town')?.value || 'Nakuru',
+            county: document.getElementById('county')?.value || 'Nakuru',
+            phone: document.getElementById('phoneNumber')?.value || '',
+            paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'mpesa',
+            deliveryInstructions: document.getElementById('deliveryInstructions')?.value || ''
         });
+
+        const response = await (typeof window.apiFetch === 'function'
+            ? window.apiFetch(`${CART_API_BASE_URL}/orders`, {
+                method: 'POST',
+                body: requestBody
+            })
+            : fetch(`${CART_API_BASE_URL}/orders`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: requestBody
+            }));
 
         const result = await response.json().catch(() => ({}));
         if (!response.ok || result.success === false) {

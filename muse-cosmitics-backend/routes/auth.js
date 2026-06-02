@@ -3,7 +3,7 @@ const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireCsrfToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 
 const authAttemptLimiter = rateLimit({
@@ -39,14 +39,14 @@ router.post('/register', authAttemptLimiter, registerValidation, authController.
 router.post('/login', authAttemptLimiter, loginValidation, authController.login);
 router.get('/google', authAttemptLimiter, authController.socialLogin);
 router.get('/facebook', authAttemptLimiter, authController.socialLogin);
-router.post('/logout', authController.logout);
+router.post('/logout', verifyToken, requireCsrfToken, authController.logout);
 router.get('/me', verifyToken, authController.getMe);
-router.put('/profile', verifyToken, authController.updateProfile);
-router.post('/change-password', verifyToken, authController.changePassword);
-router.post('/resend-verification', verifyToken, authAttemptLimiter, authController.resendVerificationEmail);
+router.put('/profile', verifyToken, requireCsrfToken, authController.updateProfile);
+router.post('/change-password', verifyToken, requireCsrfToken, authController.changePassword);
+router.post('/resend-verification', verifyToken, requireCsrfToken, authAttemptLimiter, authController.resendVerificationEmail);
 router.post('/forgot-password', authAttemptLimiter, forgotPasswordValidation, authController.forgotPassword);
 router.put('/reset-password', authAttemptLimiter, authController.resetPassword);
 router.get('/verify-email', authAttemptLimiter, authController.verifyEmail);
-router.delete('/delete-account', verifyToken, authController.deleteAccount);
+router.delete('/delete-account', verifyToken, requireCsrfToken, authController.deleteAccount);
 
 module.exports = router;

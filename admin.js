@@ -4,22 +4,27 @@ let loadedProducts = [];
 let activeEditButton = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const token = getAuthToken();
-    const user = getCurrentUser();
+    (async () => {
+        if (typeof window.refreshAuthStatus === 'function') {
+            await window.refreshAuthStatus();
+        }
 
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
+        const user = getCurrentUser();
 
-    if (!user || user.role !== 'admin') {
-        window.location.href = 'dashboard.html';
-        return;
-    }
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
 
-    initializeSidebar();
-    initializeProductForm();
-    loadAdminData();
+        if (user.role !== 'admin') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        initializeSidebar();
+        initializeProductForm();
+        loadAdminData();
+    })();
 });
 
 function getApiBaseUrl() {
@@ -35,32 +40,24 @@ function getApiBaseUrl() {
 }
 
 function getAuthToken() {
-    return localStorage.getItem('token')
-        || localStorage.getItem('authToken')
-        || sessionStorage.getItem('token')
-        || sessionStorage.getItem('authToken');
+    return null;
 }
 
 function getCurrentUser() {
-    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    return typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : null;
 }
 
 async function fetchApi(path, options = {}) {
-    const token = getAuthToken();
-    const headers = {
-        ...(options.headers || {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
-
-    if (!(options.body instanceof FormData)) {
-        headers['Content-Type'] = 'application/json';
-    }
-
-    const response = await fetch(`${ADMIN_API_BASE_URL}${path}`, {
-        ...options,
-        headers
-    });
+    const response = typeof window.apiFetch === 'function'
+        ? await window.apiFetch(`${ADMIN_API_BASE_URL}${path}`, options)
+        : await fetch(`${ADMIN_API_BASE_URL}${path}`, {
+            ...options,
+            credentials: 'include',
+            headers: {
+                ...(options.headers || {}),
+                ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' })
+            }
+        });
 
     const data = await response.json().catch(() => ({}));
 
@@ -524,12 +521,11 @@ function updateOrderStatus(select, orderId) {
 }
 
 function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
+    if (typeof window.apiFetch === 'function') {
+        window.apiFetch(`${ADMIN_API_BASE_URL}/auth/logout`, { method: 'POST' }).catch(() => {});
+    }
     window.location.href = 'index.html';
 }
 

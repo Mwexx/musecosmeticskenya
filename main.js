@@ -3,6 +3,59 @@ let currentUser = null;
 let cart = [];
 const MAIN_API_BASE_URL = getApiBaseUrl();
 
+function getCookieValue(name) {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith(`${name}=`))
+        ?.split('=')[1] || '';
+}
+
+function getCsrfToken() {
+    return decodeURIComponent(getCookieValue('csrfToken') || '');
+}
+
+function isUnsafeMethod(method = 'GET') {
+    return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method).toUpperCase());
+}
+
+function buildRequestHeaders(options = {}) {
+    const headers = { ...(options.headers || {}) };
+    const method = String(options.method || 'GET').toUpperCase();
+
+    if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    if (isUnsafeMethod(method)) {
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+    }
+
+    return headers;
+}
+
+async function apiFetch(url, options = {}) {
+    return fetch(url, {
+        ...options,
+        credentials: 'include',
+        headers: buildRequestHeaders(options)
+    });
+}
+
+async function fetchCurrentUser() {
+    const response = await apiFetch(`${MAIN_API_BASE_URL}/auth/me`, { method: 'GET' });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.success === false) {
+        throw new Error(result.message || 'Session not available');
+    }
+
+    currentUser = result.data || null;
+    return currentUser;
+}
+
 function getApiBaseUrl() {
     if (window.API_BASE_URL) {
         return window.API_BASE_URL;
@@ -16,7 +69,7 @@ function getApiBaseUrl() {
 }
 
 // ===== Initialize =====
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initializeTheme();
     initializeNavigation();
     initializeCarousel();
@@ -24,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof loadCart === 'function') {
         loadCart();
     }
-    checkAuthStatus();
+    await checkAuthStatus();
     loadFeaturedProducts();
 });
 
@@ -154,23 +207,20 @@ function initializeTestimonials() {
 }
 
 // ===== Authentication Status =====
-function checkAuthStatus() {
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
-    const user = localStorage.getItem('user');
-    
-    if (token && user) {
-        const parsedUser = JSON.parse(user);
+async function checkAuthStatus() {
+    clearLegacyFallbackAuth();
 
-        if (isLegacyFallbackSession(token, parsedUser)) {
-            clearLegacyFallbackAuth();
-            updateAuthUI(false);
-            return;
-        }
-
-        currentUser = parsedUser;
+    try {
+        await fetchCurrentUser();
         updateAuthUI(true);
-    } else {
+        if (typeof loadUserCart === 'function') {
+            loadUserCart();
+        }
+        return true;
+    } catch (error) {
+        currentUser = null;
         updateAuthUI(false);
+        return false;
     }
 }
 
@@ -351,13 +401,17 @@ window.addToCart = function(productId) {
 };
 
 window.logout = function() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('user');
+    apiFetch(`${MAIN_API_BASE_URL}/auth/logout`, {
+        method: 'POST'
+    }).catch(() => {});
     currentUser = null;
     updateAuthUI(false);
     window.location.href = 'index.html';
 };
+
+window.apiFetch = apiFetch;
+window.getCsrfToken = getCsrfToken;
+window.getCurrentUser = () => currentUser;
+window.isLoggedIn = () => Boolean(currentUser);
+window.refreshAuthStatus = checkAuthStatus;
+window.checkAuthStatus = checkAuthStatus;

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Order = require('../models/Order');
-const { verifyToken, isAdmin } = require('../middleware/auth');
+const { verifyToken, isAdmin, requireCsrfToken } = require('../middleware/auth');
 
 // @desc    Get all users
 // @route   GET /api/v1/users
@@ -74,7 +74,7 @@ router.get('/:id', verifyToken, isAdmin, async (req, res) => {
 // @desc    Update user role
 // @route   PUT /api/v1/users/:id/role
 // @access  Private/Admin
-router.put('/:id/role', verifyToken, isAdmin, async (req, res) => {
+router.put('/:id/role', verifyToken, requireCsrfToken, isAdmin, async (req, res) => {
     try {
         const { role } = req.body;
 
@@ -122,7 +122,7 @@ router.put('/:id/role', verifyToken, isAdmin, async (req, res) => {
 // @desc    Delete user
 // @route   DELETE /api/v1/users/:id
 // @access  Private/Admin
-router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
+router.delete('/:id', verifyToken, requireCsrfToken, isAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
 

@@ -35,9 +35,19 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
+        const headers = typeof window.buildRequestHeaders === 'function'
+            ? window.buildRequestHeaders(options)
+            : { ...(options.headers || {}) };
+
+        if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+
         return await fetch(url, {
             ...options,
-            signal: controller.signal
+            signal: controller.signal,
+            credentials: 'include',
+            headers
         });
     } finally {
         clearTimeout(timeoutId);
@@ -45,32 +55,33 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
 }
 
 // ===== Initialize Authentication =====
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuthStatus();
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAuthStatus();
     initializeAuthForms();
 });
 
 // ===== Check Authentication Status =====
-function checkAuthStatus() {
-    const token = getAuthToken();
-    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
-    
-    if (token && user) {
-        const parsedUser = JSON.parse(user);
+async function checkAuthStatus() {
+    clearLegacyFallbackAuth();
 
-        if (isLegacyFallbackSession(token, parsedUser)) {
-            clearLegacyFallbackAuth();
-            updateAuthUI(false);
-            return false;
-        }
+    if (typeof window.refreshAuthStatus === 'function') {
+        const isLoggedIn = await window.refreshAuthStatus();
+        authCurrentUser = typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : null;
+        authToken = isLoggedIn ? 'cookie-session' : null;
+        updateAuthUI(Boolean(authCurrentUser));
+        return Boolean(authCurrentUser);
+    }
 
-        authToken = token;
-        authCurrentUser = parsedUser;
-        updateAuthUI(true);
-        return true;
-    } else {
-        authToken = null;
+    try {
+        const response = await authFetch('/auth/me', { method: 'GET' });
+        const result = await parseApiResponse(response);
+        authCurrentUser = result.data || null;
+        authToken = authCurrentUser ? 'cookie-session' : null;
+        updateAuthUI(Boolean(authCurrentUser));
+        return Boolean(authCurrentUser);
+    } catch (error) {
         authCurrentUser = null;
+        authToken = null;
         updateAuthUI(false);
         return false;
     }
@@ -187,7 +198,7 @@ async function handleLogin(e) {
         const result = await parseApiResponse(response);
         
         // Save authentication data
-        saveAuthData(result.data.token, result.data.user, remember);
+        saveAuthData(result.data.user, remember);
         
         // Show success
         showNotification(result.message || 'Login successful! Welcome back.', 'success');
@@ -202,7 +213,7 @@ async function handleLogin(e) {
         console.error('Login error:', error);
         if (shouldUseLocalAuthFallback(error)) {
             const fallbackUser = buildFallbackUser(email);
-            saveAuthData(generateFallbackToken(fallbackUser), fallbackUser, true);
+            saveAuthData(fallbackUser, true);
             showNotification('Login successful! Welcome back.', 'success');
 
             setTimeout(() => {
@@ -260,7 +271,7 @@ async function handleSignup(e) {
 
         const result = await parseApiResponse(response);
 
-        saveAuthData(result.data.token, result.data.user, true);
+        saveAuthData(result.data.user, true);
         
         // Show success
         showNotification(result.message || 'Account created successfully!', 'success');
@@ -283,7 +294,7 @@ async function handleSignup(e) {
                 isVerified: true
             };
 
-            saveAuthData(generateFallbackToken(fallbackUser), fallbackUser, true);
+            saveAuthData(fallbackUser, true);
             showNotification('Account created successfully!', 'success');
 
             setTimeout(() => {
@@ -403,6 +414,9 @@ async function handleResetPassword(e) {
 
 // ===== Logout Function =====
 function logout() {
+    authFetch('/auth/logout', {
+        method: 'POST'
+    }).catch(() => {});
     localStorage.removeItem('token');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
@@ -422,21 +436,9 @@ function logout() {
 }
 
 // ===== Save Authentication Data =====
-function saveAuthData(token, user, remember) {
-    authToken = token;
+function saveAuthData(user, remember) {
+    authToken = 'cookie-session';
     authCurrentUser = user;
-    
-    if (remember) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('remember', 'true');
-    } else {
-        // Session storage for temporary login
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('authToken', token);
-        sessionStorage.setItem('user', JSON.stringify(user));
-    }
 }
 
 // ===== Validate Signup Form =====
@@ -564,7 +566,7 @@ function formatPhoneNumber(phone) {
 
 // ===== Check if User is Logged In =====
 function isLoggedIn() {
-    return authToken !== null && authCurrentUser !== null;
+    return authCurrentUser !== null;
 }
 
 // ===== Check if User is Admin =====
@@ -603,7 +605,7 @@ function requireAdmin() {
 
 // ===== Get Auth Token =====
 function getAuthToken() {
-    return authToken || localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
+    return authToken;
 }
 
 function isJwtToken(value) {
@@ -626,24 +628,20 @@ function clearLegacyFallbackAuth() {
 
 // ===== Get Auth Headers =====
 function getAuthHeaders() {
-    const token = getAuthToken();
+    const csrfToken = typeof window.getCsrfToken === 'function' ? window.getCsrfToken() : '';
     return {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {})
     };
 }
 
 // ===== Make Authenticated API Request =====
 async function authFetch(url, options = {}) {
-    const token = getAuthToken();
-    
     const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
-        }
+        headers: getAuthHeaders(),
+        credentials: 'include'
     };
-    
+
     const mergedOptions = {
         ...defaultOptions,
         ...options,
@@ -652,9 +650,15 @@ async function authFetch(url, options = {}) {
             ...(options.headers || {})
         }
     };
+
+    if (!(options.body instanceof FormData) && !mergedOptions.headers['Content-Type']) {
+        mergedOptions.headers['Content-Type'] = 'application/json';
+    }
     
     try {
-        const response = await fetch(`${AUTH_API_BASE_URL}${url}`, mergedOptions);
+        const response = typeof window.apiFetch === 'function'
+            ? await window.apiFetch(`${AUTH_API_BASE_URL}${url}`, mergedOptions)
+            : await fetch(`${AUTH_API_BASE_URL}${url}`, mergedOptions);
         
         // Handle 401 Unauthorized
         if (response.status === 401) {
@@ -730,26 +734,18 @@ function socialLogin(provider) {
 // ===== Handle OAuth Callback =====
 function handleOAuthCallback() {
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const user = urlParams.get('user');
-    
-    if (token && user) {
-        try {
-            const userData = JSON.parse(decodeURIComponent(user));
-            saveAuthData(token, userData, true);
-            showNotification('Login successful!', 'success');
-            
-            // Clean URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // Redirect
-            setTimeout(() => {
-                    window.location.href = resolveAppUrl('dashboard.html');
-            }, 1000);
-        } catch (error) {
-            showNotification('Login failed. Please try again.', 'error');
-        }
+    const error = urlParams.get('error');
+
+    if (error) {
+        showNotification('Social login failed. Please try again.', 'error');
+    } else if ([...urlParams.keys()].length > 0) {
+        showNotification('Login successful!', 'success');
+        setTimeout(() => {
+            window.location.href = resolveAppUrl('dashboard.html');
+        }, 1000);
     }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 // ===== Update User Profile =====
@@ -843,7 +839,9 @@ async function deleteAccount() {
 // ===== Verify Email =====
 async function verifyEmail(token) {
     try {
-        const response = await fetch(`${AUTH_API_BASE_URL}/auth/verify-email?token=${token}`);
+        const response = await authFetch(`/auth/verify-email?token=${token}`, {
+            method: 'GET'
+        });
         await parseApiResponse(response);
         showNotification('Email verified successfully!', 'success');
         return true;

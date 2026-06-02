@@ -78,6 +78,10 @@ app.use(helmet({
 }));
 app.use(cors({
     origin: (origin, callback) => {
+        if (origin === 'null' && config.NODE_ENV !== 'production') {
+            return callback(null, true);
+        }
+
         if (!origin) {
             return callback(null, true);
         }

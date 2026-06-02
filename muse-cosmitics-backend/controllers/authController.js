@@ -4,6 +4,7 @@ const config = require('../config/config');
 const User = require('../models/User');
 const Cart = require('../models/Cart');
 const { sendEmail } = require('../config/email');
+const { setAuthCookies, clearAuthCookies } = require('../middleware/auth');
 const { welcomeEmailTemplate, resetPasswordEmailTemplate } = require('../utils/emailTemplates');
 
 function generateSocialPhone() {
@@ -18,6 +19,37 @@ function normalizeEmail(value) {
 function normalizeLoginIdentifier(value) {
     const identifier = String(value || '').trim();
     return identifier.includes('@') ? identifier.toLowerCase() : identifier;
+}
+
+function buildUserResponse(user) {
+    return {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        avatar: user.avatar,
+        isVerified: user.isVerified
+    };
+}
+
+function resolveSafeRedirect(target) {
+    if (!target) {
+        return `${config.FRONTEND_URL}/dashboard.html`;
+    }
+
+    try {
+        const resolvedUrl = new URL(target, config.FRONTEND_URL);
+        const allowedOrigin = new URL(config.FRONTEND_URL).origin;
+
+        if (resolvedUrl.origin === allowedOrigin) {
+            return resolvedUrl.href;
+        }
+    } catch (error) {
+        // Fall through to the default redirect.
+    }
+
+    return `${config.FRONTEND_URL}/dashboard.html`;
 }
 
 async function createSocialUser(provider, email, name) {
@@ -85,20 +117,13 @@ exports.register = async (req, res) => {
         
         // Generate auth token
         const token = user.getSignedJwtToken();
+        setAuthCookies(res, token);
         
         res.status(201).json({
             success: true,
             message: 'Account created successfully!',
             data: {
-                token,
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone,
-                    role: user.role,
-                    avatar: user.avatar
-                }
+                user: buildUserResponse(user)
             }
         });
         
@@ -157,21 +182,13 @@ exports.login = async (req, res) => {
         
         // Generate token
         const token = user.getSignedJwtToken();
+        setAuthCookies(res, token);
         
         res.json({
             success: true,
             message: 'Login successful!',
             data: {
-                token,
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone,
-                    role: user.role,
-                    avatar: user.avatar,
-                    isVerified: user.isVerified
-                }
+                user: buildUserResponse(user)
             }
         });
         
@@ -211,20 +228,9 @@ exports.socialLogin = async (req, res) => {
         }
 
         const token = user.getSignedJwtToken();
-        const userPayload = encodeURIComponent(JSON.stringify({
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-            avatar: user.avatar,
-            isVerified: user.isVerified
-        }));
+        setAuthCookies(res, token);
 
-        const targetUrl = redirect || `${config.FRONTEND_URL}/dashboard.html`;
-        const joiner = targetUrl.includes('?') ? '&' : '?';
-
-        return res.redirect(`${targetUrl}${joiner}token=${token}&user=${userPayload}`);
+        return res.redirect(resolveSafeRedirect(redirect));
     } catch (error) {
         console.error('Social login error:', error);
         return res.redirect(`${config.FRONTEND_URL}/login.html?error=social_login_failed`);
@@ -339,11 +345,14 @@ exports.changePassword = async (req, res) => {
         
         // Generate new token
         const token = user.getSignedJwtToken();
+        setAuthCookies(res, token);
         
         res.json({
             success: true,
             message: 'Password changed successfully!',
-            data: { token }
+            data: {
+                user: buildUserResponse(user)
+            }
         });
         
     } catch (error) {
@@ -539,11 +548,14 @@ exports.resetPassword = async (req, res) => {
         
         // Generate new token
         const authToken = user.getSignedJwtToken();
+        setAuthCookies(res, authToken);
         
         res.json({
             success: true,
             message: 'Password reset successfully!',
-            data: { token: authToken }
+            data: {
+                user: buildUserResponse(user)
+            }
         });
         
     } catch (error) {
@@ -614,6 +626,7 @@ exports.verifyEmail = async (req, res) => {
 // @route   POST /api/v1/auth/logout
 // @access  Private
 exports.logout = async (req, res) => {
+    clearAuthCookies(res);
     res.json({
         success: true,
         message: 'Logged out successfully!'
