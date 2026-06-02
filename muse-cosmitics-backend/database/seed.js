@@ -134,9 +134,7 @@ async function seedDatabase() {
         console.log('✅ Products created');
 
         console.log('\n🎉 Database seeded successfully!');
-        console.log('\n📝 Login Credentials:');
-        console.log('   Admin: admin@musecosmetics.co.ke / Admin@123');
-        console.log('   Customer: customer@example.com / Customer@123');
+        console.log('\n📝 Demo accounts were created. Check the seed file or environment variables for the credentials used in this environment.');
 
         process.exit(0);
     } catch (error) {

@@ -348,7 +348,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // ===== Export Functions =====
 window.addToCart = function(productId) {
     // This will be implemented in cart.js
-    console.log('Add to cart:', productId);
 };
 
 window.logout = function() {

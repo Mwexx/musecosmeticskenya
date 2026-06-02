@@ -209,7 +209,6 @@ function initializeProfileForm(user) {
     
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        // In production: API call to update profile
         showNotification('Profile updated successfully!', 'success');
     });
 }

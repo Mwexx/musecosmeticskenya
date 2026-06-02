@@ -23,6 +23,29 @@ const app = express();
 const isServerless = Boolean(process.env.VERCEL);
 let initializationPromise = null;
 
+const allowedOrigins = new Set();
+
+function addAllowedOrigin(origin) {
+    if (typeof origin === 'string' && origin.trim()) {
+        allowedOrigins.add(origin.trim().replace(/\/$/, ''));
+    }
+}
+
+addAllowedOrigin(config.FRONTEND_URL);
+if (process.env.FRONTEND_URL) {
+    addAllowedOrigin(process.env.FRONTEND_URL);
+}
+if (process.env.VERCEL_URL) {
+    addAllowedOrigin(`https://${process.env.VERCEL_URL}`);
+}
+if (process.env.ALLOWED_ORIGINS) {
+    process.env.ALLOWED_ORIGINS.split(',').forEach(addAllowedOrigin);
+}
+if (config.NODE_ENV !== 'production') {
+    addAllowedOrigin('http://localhost:5500');
+    addAllowedOrigin('http://127.0.0.1:5500');
+}
+
 async function initializeServices() {
     if (!initializationPromise) {
         initializationPromise = (async () => {
@@ -45,9 +68,27 @@ async function initializeServices() {
 }
 
 // Security middleware
-app.use(helmet());
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    referrerPolicy: { policy: 'no-referrer' }
+}));
 app.use(cors({
-    origin: config.FRONTEND_URL,
+    origin: (origin, callback) => {
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        const normalizedOrigin = origin.replace(/\/$/, '');
+        if (allowedOrigins.has(normalizedOrigin)) {
+            return callback(null, true);
+        }
+
+        return callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
