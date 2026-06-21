@@ -74,7 +74,7 @@ exports.createOrder = async (req, res) => {
         }
         
         // Calculate delivery fee
-        const deliveryFee = subtotal >= 1000 ? 0 : 150;
+        const deliveryFee = subtotal >= 0 ? 0 : 0;
         const total = subtotal + deliveryFee;
         
         // Create order

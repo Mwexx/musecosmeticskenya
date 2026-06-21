@@ -286,7 +286,7 @@
             }
             
             const subtotal = getCartTotal();
-            const delivery = subtotal > 1000 ? 0 : 150; // Free delivery over 1000
+            const delivery = subtotal > 0 ? 0 : 0; // Free delivery 
             const total = subtotal + delivery;
             
             container.innerHTML = `
@@ -332,7 +332,7 @@
                             <span>Delivery Fee</span>
                             <span>${delivery === 0 ? 'FREE' : 'Ksh ' + delivery + '/='}</span>
                         </div>
-                        ${delivery > 0 ? '<p style="font-size: 0.85rem; color: var(--primary-color); margin: -10px 0 15px;">Free delivery on orders over Ksh 1,000</p>' : ''}
+                        ${delivery > 0 ? '<p style="font-size: 0.85rem; color: var(--primary-color); margin: -10px 0 15px;">Free delivery </p>' : ''}
                         <div class="summary-row total">
                             <span>Total</span>
                             <span>Ksh ${total}/=</span>
