@@ -340,7 +340,7 @@
             }
             
             const subtotal = getCartTotal();
-            const delivery = subtotal > 1000 ? 0 : 150;
+            const delivery = subtotal > 0 ? 0 : 0;
             const total = subtotal + delivery;
             
             container.innerHTML = cart.map(item => `
