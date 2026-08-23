@@ -9,7 +9,7 @@ const productsData = [
         ingredients: 'Carrot extract, vitamin E, natural oils, moisture lock blend',
         benefits: ['Brightens the skin', 'Smooth daily moisture', 'Soft pink finish', 'Lightweight absorption'],
         image: 'assets/carrot.jpg',
-        imageBack: 'assets/corrotlightglycerine.jpg',
+        imageBack: 'assets/carrotlightglycerine.jpg',
         sizes: [
             { size: '100ml', price: 60 },
             { size: '200ml', price: 120 },
@@ -329,7 +329,7 @@ function showSizeOptions(productId) {
             <h3>Choose a size for ${product.name}</h3>
             <div class="size-options">
                 ${product.sizes.map(s => `
-                    <div class="size-option" onclick="selectSize(${JSON.stringify(String(product.id))}, ${JSON.stringify(String(s.size))}, ${s.price})">
+                    <div class="size-option" onclick='selectSize(${JSON.stringify(String(product.id))}, ${JSON.stringify(String(s.size))}, ${s.price})'>
                         <span>${s.size}</span>
                         <span>Ksh ${s.price}/=</span>
                     </div>

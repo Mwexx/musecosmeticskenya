@@ -11,7 +11,7 @@ const products = [
         price: 60,
         stock: 100,
         image: '/uploads/carrot.jpg',
-        imageBack: '/uploads/corrotlightglycerine.jpg',
+        imageBack: '/uploads/carrotlightglycerine.jpg',
         ingredients: 'Carrot extract, vitamin E, natural oils, moisture lock blend',
         benefits: ['Brightens the skin', 'Smooth daily moisture', 'Soft pink finish', 'Lightweight absorption'],
         sizes: [
@@ -61,7 +61,7 @@ const products = [
         category: 'glycerin',
         price: 50,
         stock: 100,
-        image: '/uploads/corrotlightglycerine.jpg',
+        image: '/uploads/carrotlightglycerine.jpg',
         imageBack: '/uploads/carrot.jpg',
         ingredients: 'Glycerin, carrot extract, vitamin E',
         benefits: ['Softens rough skin', 'Locks in moisture', 'Lightweight texture', 'Gentle daily care'],
@@ -77,7 +77,7 @@ const products = [
         price: 50,
         stock: 100,
         image: '/uploads/pureglycerine.jpg',
-        imageBack: '/uploads/corrotlightglycerine.jpg',
+        imageBack: '/uploads/carrotlightglycerine.jpg',
         ingredients: 'Pure glycerin, moisture retention blend',
         benefits: ['Deep hydration', 'Non-greasy finish', 'Everyday skin support', 'Clean formula'],
         sizes: [

@@ -6,7 +6,7 @@ module.exports = [
         price: 60,
         stock: 100,
         image: '/uploads/carrot.jpg',
-        imageBack: '/uploads/corrotlightglycerine.jpg',
+        imageBack: '/uploads/carrotlightglycerine.jpg',
         ingredients: 'Carrot extract, vitamin E, natural oils, moisture lock blend',
         benefits: ['Brightens the skin', 'Smooth daily moisture', 'Soft pink finish', 'Lightweight absorption'],
         sizes: [

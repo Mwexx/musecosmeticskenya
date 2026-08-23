@@ -24,7 +24,7 @@
             <ul class="nav-menu" id="navMenu">
                 <li><a href="index.html" class="nav-link">Home</a></li>
                 <li><a href="products.html" class="nav-link">Products</a></li>
-                <li><a href="product-details.html" class="nav-link active">Products Details</a></li>
+                <li><a href="product-details.html" class="nav-link">Products Details</a></li>
                 <li><a href="dashboard.html" class="nav-link active">Customer Dashboard</a></li>
                 <li><a href="cart.html" class="nav-link cart-icon">
                     <i class="fas fa-shopping-cart"></i>
@@ -124,7 +124,7 @@
                 <div class="data-table-container">
                     <div class="table-header">
                         <h3>Recent Orders</h3>
-                        <a href="#" class="btn btn-primary" onclick="switchSection('orders')">View All</a>
+                        <a href="dashboard.html#orders" class="btn btn-primary" onclick="switchSection('orders')">View All</a>
                     </div>
                     <table class="data-table">
                         <thead>
@@ -205,7 +205,6 @@
                 <div class="dashboard-form">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                         <h3>Delivery Addresses</h3>
-                        <button class="btn btn-primary" onclick="alert('Add Address Modal coming soon')"><i class="fas fa-plus"></i> Add New</button>
                     </div>
                     <div id="addressesList">
                         <!-- Loaded via JS -->
