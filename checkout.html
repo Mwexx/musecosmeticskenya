@@ -380,20 +380,14 @@
             e.preventDefault();
             
             try {
-                const token = localStorage.getItem('token') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || sessionStorage.getItem('authToken');
-
-                if (!token) {
+                if (typeof window.isLoggedIn === 'function' && !window.isLoggedIn()) {
                     showNotification('Please login to place your order', 'error');
                     window.location.href = 'login.html';
                     return;
                 }
 
-                const response = await fetch(`${CHECKOUT_API_BASE_URL}/orders`, {
+                const requestOptions = {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
                     body: JSON.stringify({
                         items: cart.map(item => ({
                             product: item.productId || item.id,
@@ -408,7 +402,13 @@
                         paymentMethod: document.querySelector('input[name="payment"]:checked').value,
                         deliveryInstructions: document.getElementById('instructions').value
                     })
-                });
+                };
+                const response = typeof window.apiFetch === 'function'
+                    ? await window.apiFetch(`${CHECKOUT_API_BASE_URL}/orders`, requestOptions)
+                    : await fetch(`${CHECKOUT_API_BASE_URL}/orders`, {
+                        ...requestOptions,
+                        credentials: 'include'
+                    });
 
                 const result = await response.json().catch(() => ({}));
                 if (!response.ok || result.success === false) {
