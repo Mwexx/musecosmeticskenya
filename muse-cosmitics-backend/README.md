@@ -41,7 +41,7 @@ Set these in the Vercel project settings:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js >= 18.0.0
+- Node.js >= 26.0.0
 - MongoDB >= 6.0 (local or MongoDB Atlas)
 - npm or yarn
 
