@@ -207,34 +207,10 @@ exports.login = async (req, res) => {
 // @route   GET /api/v1/auth/facebook
 // @access  Public
 exports.socialLogin = async (req, res) => {
-    try {
-        const provider = req.path.includes('facebook') ? 'facebook' : 'google';
-        const { email, name, redirect } = req.query;
-
-        if (!email || !name) {
-            const fallbackRedirect = `${config.FRONTEND_URL}/login.html?error=social_login_required`;
-            return res.redirect(redirect || fallbackRedirect);
-        }
-
-        const normalizedEmail = String(email).trim().toLowerCase();
-        const normalizedName = String(name).trim();
-
-        let user = await User.findOne({ email: normalizedEmail });
-
-        if (!user) {
-            user = await createSocialUser(provider, normalizedEmail, normalizedName);
-        } else if (user.isActive === false) {
-            return res.redirect(`${config.FRONTEND_URL}/login.html?error=account_deactivated`);
-        }
-
-        const token = user.getSignedJwtToken();
-        setAuthCookies(res, token);
-
-        return res.redirect(resolveSafeRedirect(redirect));
-    } catch (error) {
-        console.error('Social login error:', error);
-        return res.redirect(`${config.FRONTEND_URL}/login.html?error=social_login_failed`);
-    }
+    return res.status(501).json({
+        success: false,
+        message: 'Social login is not configured.'
+    });
 };
 
 // @desc    Get current logged in user
@@ -467,9 +443,9 @@ exports.forgotPassword = async (req, res) => {
         const user = await User.findOne({ email: normalizedEmail });
         
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found.'
+            return res.json({
+                success: true,
+                message: 'If an account exists for that email, a password reset link has been sent.'
             });
         }
         
@@ -494,13 +470,12 @@ exports.forgotPassword = async (req, res) => {
             });
         } catch (error) {
             console.error('Email send failed:', error);
-            return res.json({
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save({ validateBeforeSave: false });
+            return res.status(200).json({
                 success: true,
-                message: 'Password reset link generated. Email delivery is unavailable, so the reset page has been opened directly.',
-                data: {
-                    resetUrl,
-                    emailSent: false
-                }
+                message: 'If an account exists for that email, a password reset link has been sent.'
             });
         }
         

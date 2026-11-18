@@ -34,6 +34,12 @@ const forgotPasswordValidation = [
     validate
 ];
 
+const resetPasswordValidation = [
+    body('token').trim().notEmpty().withMessage('Reset token is required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    validate
+];
+
 // Routes
 router.post('/register', authAttemptLimiter, registerValidation, authController.register);
 router.post('/login', authAttemptLimiter, loginValidation, authController.login);
@@ -45,7 +51,7 @@ router.put('/profile', verifyToken, requireCsrfToken, authController.updateProfi
 router.post('/change-password', verifyToken, requireCsrfToken, authController.changePassword);
 router.post('/resend-verification', verifyToken, requireCsrfToken, authAttemptLimiter, authController.resendVerificationEmail);
 router.post('/forgot-password', authAttemptLimiter, forgotPasswordValidation, authController.forgotPassword);
-router.put('/reset-password', authAttemptLimiter, authController.resetPassword);
+router.put('/reset-password', authAttemptLimiter, resetPasswordValidation, authController.resetPassword);
 router.get('/verify-email', authAttemptLimiter, authController.verifyEmail);
 router.delete('/delete-account', verifyToken, requireCsrfToken, authController.deleteAccount);
 

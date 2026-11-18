@@ -25,6 +25,14 @@ exports.createOrder = async (req, res) => {
         let subtotal = 0;
         
         for (const item of items) {
+            const quantity = Number(item.quantity);
+            if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Quantity must be a whole number between 1 and 100.'
+                });
+            }
+
             let product = null;
 
             if (item.product && mongoose.Types.ObjectId.isValid(item.product)) {
@@ -44,7 +52,7 @@ exports.createOrder = async (req, res) => {
                 });
             }
             
-            if (product.stock < item.quantity) {
+            if (product.stock < quantity) {
                 return res.status(400).json({
                     success: false,
                     message: `Insufficient stock for ${product.name}`
@@ -55,21 +63,36 @@ exports.createOrder = async (req, res) => {
             const sizeEntry = Array.isArray(product.sizes)
                 ? product.sizes.find(size => size.size === selectedSize)
                 : null;
-            const unitPrice = Number(item.price ?? sizeEntry?.price ?? product.price ?? 0);
+            if (sizeEntry && Number(sizeEntry.stock) >= 0 && Number(sizeEntry.stock) < quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Insufficient stock for ${product.name} (${selectedSize})`
+                });
+            }
+            const unitPrice = Number(sizeEntry?.price ?? product.price);
+            if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid price for ${product.name}`
+                });
+            }
 
             orderItems.push({
                 product: product._id,
                 name: product.name,
                 size: selectedSize,
                 price: unitPrice,
-                quantity: item.quantity,
+                quantity,
                 image: product.image
             });
             
-            subtotal += unitPrice * item.quantity;
+            subtotal += unitPrice * quantity;
             
             // Update product stock
-            product.stock -= item.quantity;
+            product.stock -= quantity;
+            if (sizeEntry && Number(sizeEntry.stock) >= quantity) {
+                sizeEntry.stock -= quantity;
+            }
             await product.save();
         }
         

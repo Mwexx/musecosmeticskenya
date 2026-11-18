@@ -52,7 +52,8 @@ function formatCurrency(value) {
 
 function getCurrentCart() {
     try {
-        return JSON.parse(localStorage.getItem('cart') || '[]');
+        const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        return Array.isArray(storedCart) ? storedCart : [];
     } catch (error) {
         return [];
     }

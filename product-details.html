@@ -484,18 +484,34 @@
             
             const container = document.getElementById('reviewsContainer');
             if (container) {
-                container.innerHTML = reviews.map(review => `
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div>
-                                <div class="reviewer-name">${review.name}</div>
-                                <div class="stars">${renderStars(review.rating)}</div>
-                            </div>
-                            <div class="review-date">${review.date}</div>
-                        </div>
-                        <p>${review.comment}</p>
-                    </div>
-                `).join('');
+                container.replaceChildren();
+                reviews.slice(0, 20).forEach(review => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card';
+
+                    const header = document.createElement('div');
+                    header.className = 'review-header';
+
+                    const identity = document.createElement('div');
+                    const name = document.createElement('div');
+                    name.className = 'reviewer-name';
+                    name.textContent = String(review.name || 'Verified customer');
+                    const stars = document.createElement('div');
+                    stars.className = 'stars';
+                    const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
+                    stars.textContent = `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`;
+
+                    identity.append(name, stars);
+                    const date = document.createElement('div');
+                    date.className = 'review-date';
+                    date.textContent = String(review.date || '');
+                    header.append(identity, date);
+
+                    const comment = document.createElement('p');
+                    comment.textContent = String(review.comment || '');
+                    card.append(header, comment);
+                    container.appendChild(card);
+                });
             }
         }
         

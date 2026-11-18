@@ -27,8 +27,16 @@ function getApiBaseUrl() {
 function loadCart() {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-        cartItems = JSON.parse(savedCart).map(item => normalizeStoredCartItem(item));
-        updateCartCount();
+        try {
+            const parsedCart = JSON.parse(savedCart);
+            cartItems = Array.isArray(parsedCart)
+                ? parsedCart.map(item => normalizeStoredCartItem(item))
+                : [];
+            updateCartCount();
+        } catch (error) {
+            localStorage.removeItem('cart');
+            cartItems = [];
+        }
     }
 
     syncLegacyCartState();

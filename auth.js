@@ -716,19 +716,7 @@ function updateCartCount(count) {
 
 // ===== Social Login (Google, Facebook) =====
 function socialLogin(provider) {
-    // Redirect to OAuth provider
-    const redirectUrl = encodeURIComponent(window.location.href);
-    
-    switch(provider) {
-        case 'google':
-            window.location.href = `${AUTH_API_BASE_URL}/auth/google?redirect=${redirectUrl}`;
-            break;
-        case 'facebook':
-            window.location.href = `${AUTH_API_BASE_URL}/auth/facebook?redirect=${redirectUrl}`;
-            break;
-        default:
-            showNotification('Social login not available', 'error');
-    }
+    showNotification(`${String(provider || 'Social').replace(/<[^>]*>/g, '')} login is not configured yet`, 'error');
 }
 
 // ===== Handle OAuth Callback =====

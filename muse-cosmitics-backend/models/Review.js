@@ -25,7 +25,8 @@ const reviewSchema = new mongoose.Schema({
     comment: {
         type: String,
         required: [true, 'Please provide a comment'],
-        trim: true
+        trim: true,
+        maxlength: [2000, 'Comment cannot be more than 2000 characters']
     },
     isVerified: {
         type: Boolean,
